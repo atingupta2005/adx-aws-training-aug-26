@@ -1,0 +1,25 @@
+2026-07-31T10:10:00Z,WARN,High memory usage on primary node,database,db-01,45
+2026-07-31T10:11:20Z,INFO,Checkpoint flush completed,database,db-01,12
+2026-07-31T10:12:40Z,WARN,Long running transaction detected,database,db-02,67
+2026-07-31T10:15:00Z,ERROR,Disk full on data volume /var/lib/pgsql,database,db-01,98
+2026-07-31T10:16:10Z,ERROR,Write rejected due to disk pressure,database,db-01,99
+2026-07-31T10:18:00Z,INFO,Vacuum completed on analytics partition,database,db-02,12
+2026-07-31T10:19:30Z,WARN,Autovacuum lag growing,database,db-02,38
+2026-07-31T10:22:00Z,ERROR,Replica lag exceeded 30 seconds,database,db-01,41
+2026-07-31T10:23:45Z,INFO,Replica catch-up completed,database,db-01,8
+2026-07-31T10:26:00Z,WARN,Connection pool near saturation,database,db-03,87
+2026-07-31T10:27:15Z,ERROR,Client connection reset by peer,database,db-03,0
+2026-07-31T10:30:00Z,INFO,Backup checkpoint written,database,db-02,5
+2026-07-31T10:31:20Z,DEBUG,WAL segment archived,database,db-02,3
+2026-07-31T10:34:00Z,ERROR,Autovacuum worker aborted,database,db-01,0
+2026-07-31T10:35:50Z,WARN,Table bloat above threshold on orders,database,db-01,72
+2026-07-31T10:38:00Z,WARN,Lock wait timeout on orders table,database,db-03,63
+2026-07-31T10:39:10Z,ERROR,Deadlock detected involving orders and inventory,database,db-03,1
+2026-07-31T10:42:00Z,INFO,Failover probe succeeded,database,db-02,1
+2026-07-31T10:43:25Z,INFO,Read replica promoted in DR drill,database,db-02,2
+2026-07-31T10:46:00Z,ERROR,Write amplification threshold breached,database,db-01,92
+2026-07-31T10:47:40Z,WARN,Index rebuild recommended on customers,database,db-01,55
+2026-07-31T10:50:00Z,INFO,Statistics refreshed for public schema,database,db-02,4
+2026-07-31T10:52:15Z,ERROR,Authentication failed for role app_ro,database,db-03,0
+2026-07-31T10:54:00Z,WARN,Temp file usage spike during report job,database,db-01,81
+2026-07-31T10:56:30Z,INFO,Maintenance window complete,database,db-01,6

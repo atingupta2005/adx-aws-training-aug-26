@@ -1,0 +1,8 @@
+// Module 01 — replace bucket, region, and IAM keys, then run in ADX Web UI
+.ingest into table AppLogs_JSON
+h@"https://<bucket>.s3.<region>.amazonaws.com/aws_api_logs.ndjson;AwsCredentials=<access_key_id>,<secret>"
+with (format="json", ingestionMappingReference="JSON_Mapping")
+
+.ingest into table AppLogs_CSV
+h@"https://<bucket>.s3.<region>.amazonaws.com/aws_regions.csv;AwsCredentials=<access_key_id>,<secret>"
+with (format="csv", ingestionMappingReference="CSV_Mapping")

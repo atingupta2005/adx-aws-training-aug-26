@@ -1,0 +1,10 @@
+// How many JSON vs CSV rows landed?
+AppLogs_JSON | count
+AppLogs_JSON | take 5
+AppLogs_CSV | count
+// Which AWS service showed up in the NDJSON?
+AppLogs_JSON | summarize Events = count() by ServiceName
+
+.show ingestion failures
+| where Table in ("AppLogs_JSON", "AppLogs_CSV")
+| take 10

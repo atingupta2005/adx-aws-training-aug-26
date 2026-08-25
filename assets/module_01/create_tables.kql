@@ -1,0 +1,42 @@
+// Module 01 — run in ADX Web UI on ADXTrainingDB_<your-initials>
+print Database = current_database()
+
+.create table AppLogs_JSON (
+    LogTime: datetime,
+    LogLevel: string,
+    Message: string,
+    ServiceName: string,
+    Host: string,
+    RequestId: string,
+    HttpStatus: int
+)
+
+.create table AppLogs_CSV (
+    LogTime: datetime,
+    LogLevel: string,
+    Message: string,
+    ServiceName: string,
+    Host: string,
+    MetricValue: int
+)
+
+.create table AppLogs_JSON ingestion json mapping 'JSON_Mapping'
+'['
+  '{"column":"LogTime","path":"$.timestamp","datatype":"datetime"},'
+  '{"column":"LogLevel","path":"$.level","datatype":"string"},'
+  '{"column":"Message","path":"$.message","datatype":"string"},'
+  '{"column":"ServiceName","path":"$.service","datatype":"string"},'
+  '{"column":"Host","path":"$.host","datatype":"string"},'
+  '{"column":"RequestId","path":"$.requestId","datatype":"string"},'
+  '{"column":"HttpStatus","path":"$.httpStatus","datatype":"int"}'
+']'
+
+.create table AppLogs_CSV ingestion csv mapping 'CSV_Mapping'
+'['
+  '{"column":"LogTime","datatype":"datetime","Properties":{"Ordinal":"0"}},'
+  '{"column":"LogLevel","datatype":"string","Properties":{"Ordinal":"1"}},'
+  '{"column":"Message","datatype":"string","Properties":{"Ordinal":"2"}},'
+  '{"column":"ServiceName","datatype":"string","Properties":{"Ordinal":"3"}},'
+  '{"column":"Host","datatype":"string","Properties":{"Ordinal":"4"}},'
+  '{"column":"MetricValue","datatype":"int","Properties":{"Ordinal":"5"}}'
+']'

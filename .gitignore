@@ -1,0 +1,72 @@
+# =============================================================================
+# Git ignore — student-safe repository
+# =============================================================================
+# Intended committed courseware lives at repo root:
+#   README.md, 00_Course_Agenda.md, Module_01–08/, assets/
+#
+# Everything below must not be shown to students and must not be committed.
+# =============================================================================
+
+# --- Trainer / private (answer keys, coaching, audits) ---
+Instructor_Materials/
+**/Instructor_Materials/
+**/*_Instructor.md
+**/*_Student.md
+_private_validation/
+**/_private_validation/
+
+# --- Authoring aids (not participant courseware) ---
+master-prompt.md
+course-content.md
+*.docx
+*.doc
+*.pptx
+*.ppt
+
+# --- Secrets / credentials (never commit) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+credentials.csv
+secrets/
+**/secrets/
+*accessKey*
+*secret*access*
+*.aws/
+.aws/credentials
+
+# --- Editor / OS / temp ---
+~$*
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+Thumbs.db
+Desktop.ini
+.DS_Store
+.idea/
+.vscode/
+*.code-workspace
+
+# --- Local tooling / agent noise (if present under repo) ---
+.cursor/
+agent-transcripts/
+**/terminals/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- Archives that might accidentally include full repo dumps ---
+*.zip
+*.7z
+*.rar
+ADX_AWS_Training_Student/
+**/ADX_AWS_Training_Student/

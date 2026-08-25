@@ -1,0 +1,25 @@
+{"timestamp": "2026-07-31T10:00:00Z", "level": "ERROR", "message": "Connection timeout to upstream api-gateway", "service": "frontend", "host": "web-01", "requestId": "req-1001", "httpStatus": 504}
+{"timestamp": "2026-07-31T10:01:12Z", "level": "WARN", "message": "Retry scheduled for catalog fetch", "service": "frontend", "host": "web-01", "requestId": "req-1001", "httpStatus": 504}
+{"timestamp": "2026-07-31T10:02:05Z", "level": "INFO", "message": "Cache miss for sku SKU-44821", "service": "backend", "host": "api-02", "requestId": "req-1002", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:05:00Z", "level": "INFO", "message": "Service restarted after config reload", "service": "backend", "host": "api-02", "requestId": "req-1003", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:06:44Z", "level": "DEBUG", "message": "Feature flag checkout_v2 evaluated true", "service": "frontend", "host": "web-02", "requestId": "req-1004", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:08:00Z", "level": "WARN", "message": "Retry threshold reached for payment gateway", "service": "frontend", "host": "web-01", "requestId": "req-1005", "httpStatus": 429}
+{"timestamp": "2026-07-31T10:09:18Z", "level": "ERROR", "message": "Circuit breaker open for inventory API", "service": "backend", "host": "api-03", "requestId": "req-1006", "httpStatus": 503}
+{"timestamp": "2026-07-31T10:12:00Z", "level": "ERROR", "message": "Upstream dependency failure from inventory API", "service": "payments", "host": "pay-01", "requestId": "req-1007", "httpStatus": 502}
+{"timestamp": "2026-07-31T10:13:22Z", "level": "WARN", "message": "Idempotency key reused within window", "service": "payments", "host": "pay-01", "requestId": "req-1008", "httpStatus": 409}
+{"timestamp": "2026-07-31T10:15:00Z", "level": "INFO", "message": "Cache warm completed for product catalog", "service": "backend", "host": "api-02", "requestId": "req-1009", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:16:31Z", "level": "INFO", "message": "Webhook delivered to partner endpoint", "service": "payments", "host": "pay-02", "requestId": "req-1010", "httpStatus": 202}
+{"timestamp": "2026-07-31T10:18:00Z", "level": "DEBUG", "message": "Token refresh accepted for session 88421", "service": "auth", "host": "auth-01", "requestId": "req-1011", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:19:05Z", "level": "WARN", "message": "JWT near expiry for client mobile-ios", "service": "auth", "host": "auth-01", "requestId": "req-1012", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:20:40Z", "level": "ERROR", "message": "Rate limit exceeded for tenant acme-corp", "service": "frontend", "host": "web-03", "requestId": "req-1013", "httpStatus": 429}
+{"timestamp": "2026-07-31T10:22:00Z", "level": "ERROR", "message": "Dead letter queue depth exceeded threshold", "service": "payments", "host": "pay-02", "requestId": "req-1014", "httpStatus": 500}
+{"timestamp": "2026-07-31T10:23:15Z", "level": "INFO", "message": "DLQ consumer drained 120 messages", "service": "payments", "host": "pay-02", "requestId": "req-1015", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:25:00Z", "level": "WARN", "message": "Slow query detected on orders index", "service": "backend", "host": "api-03", "requestId": "req-1016", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:26:48Z", "level": "ERROR", "message": "Null reference in pricing calculator", "service": "backend", "host": "api-01", "requestId": "req-1017", "httpStatus": 500}
+{"timestamp": "2026-07-31T10:28:00Z", "level": "INFO", "message": "Health check passed for zone eu-west", "service": "frontend", "host": "web-02", "requestId": "req-1018", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:29:33Z", "level": "DEBUG", "message": "CDN cache HIT for /static/app.js", "service": "frontend", "host": "web-02", "requestId": "req-1019", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:31:00Z", "level": "ERROR", "message": "TLS handshake failure to partner endpoint", "service": "payments", "host": "pay-01", "requestId": "req-1020", "httpStatus": 525}
+{"timestamp": "2026-07-31T10:32:10Z", "level": "WARN", "message": "Certificate expires in 14 days", "service": "auth", "host": "auth-02", "requestId": "req-1021", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:34:00Z", "level": "INFO", "message": "Batch settlement posted for merchant M-9021", "service": "payments", "host": "pay-03", "requestId": "req-1022", "httpStatus": 200}
+{"timestamp": "2026-07-31T10:35:45Z", "level": "ERROR", "message": "Database connection pool exhausted", "service": "backend", "host": "api-01", "requestId": "req-1023", "httpStatus": 503}
+{"timestamp": "2026-07-31T10:37:00Z", "level": "INFO", "message": "Autoscaler added 2 frontend replicas", "service": "frontend", "host": "web-01", "requestId": "req-1024", "httpStatus": 200}
