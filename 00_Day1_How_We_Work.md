@@ -2,7 +2,7 @@
 
 Your trainer will give you an **access card** (not stored in this repo): AWS IAM user, console password, access keys, VS Code URL, and Linux password.
 
-1. Open the **lab VS Code** URL for your login (`u01`–`u06`). Use **your** Linux user. Do not use someone else’s home folder.
+1. Open **your** lab VS Code URL (on the access card). Ports: u01 `8081` … u06 `8086` on host `54.174.192.103`. Use **your** Linux user. Do not use someone else’s home folder. The course folder is already at `~/adx-aws-training`.
 2. In the VS Code terminal (Linux bash, not PowerShell):
 
 ```bash
