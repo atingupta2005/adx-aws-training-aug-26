@@ -1,4 +1,4 @@
-// Module 01 — run in ADX Web UI on ADXTrainingDB_<your-initials>
+// Module 01 — run in ADX Web UI on ADXTrainingDB_<your-login>
 print Database = current_database()
 
 .create table AppLogs_JSON (

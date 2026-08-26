@@ -10,7 +10,7 @@ If a mapping is wrong, you can fix it and ingest the **same** S3 key again. You 
 
 ## In class
 
-- Database: `ADXTrainingDB_<your-initials>`
+- Database: `ADXTrainingDB_<your-login>` (example `ADXTrainingDB_u01`)
 - You create one bucket, one IAM user, and an access key
 - Policy template: `assets/iam/s3-reader-policy.json` (list bucket, `GetBucketLocation`, get objects)
 

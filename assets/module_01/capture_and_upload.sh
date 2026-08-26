@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Module 01 — capture live AWS inventory and upload to your lab bucket.
 # Usage (Git Bash / WSL / Linux):
-#   bash assets/module_01/capture_and_upload.sh <your-initials>
+#   bash assets/module_01/capture_and_upload.sh <your-login>
 set -euo pipefail
-INIT="${1:?Pass your initials, e.g. bash capture_and_upload.sh ag}"
+INIT="${1:?Pass your login, e.g. bash capture_and_upload.sh u01}"
 BUCKET="adx-log-ingestion-${INIT}"
 WORKDIR="${HOME}/adx-lab-m01"
 mkdir -p "$WORKDIR"
