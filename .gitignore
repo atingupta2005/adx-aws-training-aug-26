@@ -1,11 +1,29 @@
 # =============================================================================
-# Git ignore — student-safe repository
+# Git ignore — Day 1 student-safe repository
 # =============================================================================
-# Intended committed courseware lives at repo root:
-#   README.md, 00_Course_Agenda.md, Module_01–08/, assets/
+# Commit only:
+#   README.md, 00_Course_Agenda.md, 00_Day1_How_We_Work.md
+#   Module_01_Amazon_S3/, assets/iam/, assets/module_01/, .gitignore
 #
-# Everything below must not be shown to students and must not be committed.
+# Modules 02–08 and their assets stay on the trainer machine until issued.
 # =============================================================================
+
+# --- Later modules (not Day 1) — local trainer copy only; do not commit ---
+# Each of these folders also has its own .gitignore (* + !.gitignore).
+Module_02_AWS_CloudTrail/
+Module_03_AWS_CloudWatch/
+Module_04_Hybrid_Architecture/
+Module_05_Logstash/
+Module_06_Filebeat/
+Module_07_Metricbeat/
+Module_08_AWS_GuardDuty/
+assets/module_02/
+assets/module_03/
+assets/module_04/
+assets/module_05/
+assets/module_06/
+assets/module_07/
+assets/module_08/
 
 # --- Trainer / private (answer keys, coaching, audits) ---
 Instructor_Materials/
