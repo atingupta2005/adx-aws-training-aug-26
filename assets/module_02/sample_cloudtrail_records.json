@@ -1,0 +1,457 @@
+{
+  "Records": [
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE01",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-demo",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-demo"
+      },
+      "eventTime": "2026-07-31T11:30:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CreateBucket",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.10",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "bucketName": "adx-ct-activity-demo"
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE01",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-demo",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-demo"
+      },
+      "eventTime": "2026-07-31T11:31:00Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "CreateUser",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.10",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "userName": "ct-lab-user-demo"
+      },
+      "responseElements": {
+        "user": {
+          "userName": "ct-lab-user-demo"
+        }
+      },
+      "readOnly": false,
+      "errorCode": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLE:session-ops",
+        "arn": "arn:aws:sts::123456789012:assumed-role/OpsRole/session-ops",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::123456789012:role/OpsRole",
+            "userName": "OpsRole"
+          }
+        }
+      },
+      "eventTime": "2026-07-31T11:33:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DescribeInstances",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.20",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "instancesSet": {}
+      },
+      "responseElements": null,
+      "readOnly": true,
+      "errorCode": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE02",
+        "arn": "arn:aws:iam::123456789012:user/readonly-auditor",
+        "accountId": "123456789012",
+        "userName": "readonly-auditor"
+      },
+      "eventTime": "2026-07-31T11:35:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteBucket",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.44",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "bucketName": "adx-ct-activity-demo"
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "AccessDenied",
+      "errorMessage": "Access Denied",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE00",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-00",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-00"
+      },
+      "eventTime": "2026-07-31T11:40:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteBucket",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.10",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "demo": true,
+        "index": 0
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE01",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-01",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-01"
+      },
+      "eventTime": "2026-07-31T11:41:00Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "DeleteUser",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.11",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "demo": true,
+        "index": 1
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AIDAEXAMPLE02",
+        "arn": "arn:aws:sts::123456789012:assumed-role/OpsRole/session-02",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::123456789012:role/OpsRole",
+            "userName": "OpsRole"
+          }
+        }
+      },
+      "eventTime": "2026-07-31T11:42:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "RunInstances",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.12",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "demo": true,
+        "index": 2
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AIDAEXAMPLE03",
+        "arn": "arn:aws:sts::123456789012:assumed-role/OpsRole/session-03",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::123456789012:role/OpsRole",
+            "userName": "OpsRole"
+          }
+        }
+      },
+      "eventTime": "2026-07-31T11:43:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "TerminateInstances",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.13",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "demo": true,
+        "index": 3
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE04",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-04",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-04"
+      },
+      "eventTime": "2026-07-31T11:44:00Z",
+      "eventSource": "logs.amazonaws.com",
+      "eventName": "CreateLogGroup",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.14",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "demo": true,
+        "index": 4
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE05",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-05",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-05"
+      },
+      "eventTime": "2026-07-31T11:45:00Z",
+      "eventSource": "logs.amazonaws.com",
+      "eventName": "PutLogEvents",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.15",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "demo": true,
+        "index": 5
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE06",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-06",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-06"
+      },
+      "eventTime": "2026-07-31T11:46:00Z",
+      "eventSource": "kms.amazonaws.com",
+      "eventName": "Decrypt",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.16",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "demo": true,
+        "index": 6
+      },
+      "responseElements": null,
+      "readOnly": true,
+      "errorCode": "AccessDenied",
+      "errorMessage": "Access Denied",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE07",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-07",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-07"
+      },
+      "eventTime": "2026-07-31T11:47:00Z",
+      "eventSource": "sts.amazonaws.com",
+      "eventName": "AssumeRole",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.17",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "demo": true,
+        "index": 7
+      },
+      "responseElements": null,
+      "readOnly": true,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AIDAEXAMPLE08",
+        "arn": "arn:aws:sts::123456789012:assumed-role/OpsRole/session-08",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::123456789012:role/OpsRole",
+            "userName": "OpsRole"
+          }
+        }
+      },
+      "eventTime": "2026-07-31T11:48:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.18",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "demo": true,
+        "index": 8
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE09",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-09",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-09"
+      },
+      "eventTime": "2026-07-31T11:49:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "GetObject",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.19",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "demo": true,
+        "index": 9
+      },
+      "responseElements": null,
+      "readOnly": true,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE10",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-10",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-10"
+      },
+      "eventTime": "2026-07-31T11:50:00Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "AttachUserPolicy",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.20",
+      "userAgent": "console.amazonaws.com",
+      "requestParameters": {
+        "demo": true,
+        "index": 10
+      },
+      "responseElements": null,
+      "readOnly": false,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.09",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLE11",
+        "arn": "arn:aws:iam::123456789012:user/ct-lab-user-11",
+        "accountId": "123456789012",
+        "userName": "ct-lab-user-11"
+      },
+      "eventTime": "2026-07-31T11:51:00Z",
+      "eventSource": "cloudtrail.amazonaws.com",
+      "eventName": "LookupEvents",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.21",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "demo": true,
+        "index": 11
+      },
+      "responseElements": null,
+      "readOnly": true,
+      "errorCode": "",
+      "errorMessage": "",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    }
+  ]
+}

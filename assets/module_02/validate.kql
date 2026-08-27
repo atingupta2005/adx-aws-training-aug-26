@@ -1,0 +1,4 @@
+CloudTrailEvents | count
+CloudTrailEvents | take 10
+// Which AWS services called APIs in this file?
+CloudTrailEvents | summarize EventCount = count() by EventSource

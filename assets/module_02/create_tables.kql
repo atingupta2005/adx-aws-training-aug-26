@@ -1,0 +1,23 @@
+.create table CloudTrailEvents (
+    EventTime: datetime,
+    EventName: string,
+    EventSource: string,
+    AwsRegion: string,
+    SourceIP: string,
+    UserAgent: string,
+    UserIdentityType: string,
+    UserArn: string,
+    AccountId: string,
+    ReadOnly: bool,
+    ErrorCode: string,
+    RequestParameters: dynamic,
+    ResponseElements: dynamic,
+    RawRecord: dynamic
+)
+
+.create table CloudTrailRaw (
+    Records: dynamic
+)
+
+.create table CloudTrailRaw ingestion json mapping 'CT_Raw_Mapping'
+'[{"column":"Records","path":"$.Records","datatype":"dynamic"}]'

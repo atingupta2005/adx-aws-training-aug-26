@@ -1,0 +1,3 @@
+.ingest into table CloudWatchLogs
+h@"https://adx-cw-firehose-<your-login>.s3.<region>.amazonaws.com/<object-key>;AwsCredentials=<access_key_id>,<secret>"
+with (format="multijson", ingestionMappingReference="CW_Mapping")

@@ -1,0 +1,18 @@
+.create table CloudWatchLogs (
+    messageType: string,
+    owner: string,
+    logGroup: string,
+    logStream: string,
+    subscriptionFilters: dynamic,
+    logEvents: dynamic
+)
+
+.create table CloudWatchLogs ingestion json mapping 'CW_Mapping'
+'['
+  '{"column":"messageType","path":"$.messageType","datatype":"string"},'
+  '{"column":"owner","path":"$.owner","datatype":"string"},'
+  '{"column":"logGroup","path":"$.logGroup","datatype":"string"},'
+  '{"column":"logStream","path":"$.logStream","datatype":"string"},'
+  '{"column":"subscriptionFilters","path":"$.subscriptionFilters","datatype":"dynamic"},'
+  '{"column":"logEvents","path":"$.logEvents","datatype":"dynamic"}'
+']'

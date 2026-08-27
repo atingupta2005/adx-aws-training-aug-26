@@ -1,0 +1,25 @@
+// Replace bucket (adx-classroom-cloudtrail), region, object key, and adx-cloudtrail-reader-<login> keys.
+.ingest into table CloudTrailRaw
+h@"https://<bucket>.s3.<region>.amazonaws.com/<object-key>;AwsCredentials=<access_key_id>,<secret>"
+with (format="multijson", ingestionMappingReference="CT_Raw_Mapping")
+
+CloudTrailRaw | take 1
+
+.set-or-append CloudTrailEvents <|
+CloudTrailRaw
+| mv-expand Record = Records
+| project
+    EventTime = todatetime(Record.eventTime),
+    EventName = tostring(Record.eventName),
+    EventSource = tostring(Record.eventSource),
+    AwsRegion = tostring(Record.awsRegion),
+    SourceIP = tostring(Record.sourceIPAddress),
+    UserAgent = tostring(Record.userAgent),
+    UserIdentityType = tostring(Record.userIdentity.type),
+    UserArn = tostring(Record.userIdentity.arn),
+    AccountId = tostring(Record.userIdentity.accountId),
+    ReadOnly = tobool(Record.readOnly),
+    ErrorCode = tostring(Record.errorCode),
+    RequestParameters = Record.requestParameters,
+    ResponseElements = Record.responseElements,
+    RawRecord = Record

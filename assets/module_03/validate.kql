@@ -1,0 +1,3 @@
+CloudWatchLogs | count
+// Real log batches, not CONTROL_MESSAGE only
+CloudWatchLogs | where messageType == "DATA_MESSAGE" | take 5

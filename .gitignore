@@ -1,24 +1,20 @@
 # =============================================================================
 # Git ignore — Day 1 student-safe repository
 # =============================================================================
-# Commit only:
+# Commit:
 #   README.md, 00_Course_Agenda.md, 00_Day1_How_We_Work.md
-#   Module_01_Amazon_S3/, assets/iam/, assets/module_01/, .gitignore
+#   Module_01–03, assets/iam/, assets/module_01–03, .gitignore
 #
-# Modules 02–08 and their assets stay on the trainer machine until issued.
+# Modules 04–08 stay on the trainer machine until issued.
 # =============================================================================
 
-# --- Later modules (not Day 1) — local trainer copy only; do not commit ---
-# Each of these folders also has its own .gitignore (* + !.gitignore).
-Module_02_AWS_CloudTrail/
-Module_03_AWS_CloudWatch/
+# --- Later modules — local trainer copy only; do not commit ---
+# Each blocked folder may have its own .gitignore (* + !.gitignore).
 Module_04_Hybrid_Architecture/
 Module_05_Logstash/
 Module_06_Filebeat/
 Module_07_Metricbeat/
 Module_08_AWS_GuardDuty/
-assets/module_02/
-assets/module_03/
 assets/module_04/
 assets/module_05/
 assets/module_06/

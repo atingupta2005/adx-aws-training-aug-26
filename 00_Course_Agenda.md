@@ -1,5 +1,16 @@
-# Course agenda — Day 1
+# Course agenda
 
-**Duration today:** Amazon S3 batch ingest into ADX (~2.5–3 h including lab).
+## Day 1 — Module 01 (S3 → ADX)
 
-Later days are issued in class. Do not expect Modules 02–08 in this clone yet.
+Amazon S3 batch ingest into ADX (~2.5–3 h including lab).
+
+Start with `00_Day1_How_We_Work.md`, then `Module_01_Amazon_S3/`.
+
+## Day 2 — Modules 02–03 (CloudTrail + CloudWatch → ADX)
+
+- **Module 02:** Shared CloudTrail trail → `.ingest` → expand `Records` (~3 h including trail delivery wait)
+- **Module 03:** CloudWatch → Firehose → S3 → ADX (~3 h; console-heavy)
+
+Shared trail bucket (trainer gives this): **`adx-classroom-cloudtrail`**
+
+Modules 04–08 are issued later in class.
