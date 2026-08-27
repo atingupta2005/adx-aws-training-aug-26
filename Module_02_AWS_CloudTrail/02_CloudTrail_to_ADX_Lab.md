@@ -17,18 +17,20 @@ Scripts and KQL: `assets/module_02/`.
 | Keys | Where they go |
 |------|----------------|
 | Access card (`u01` … `u06`) | AWS console login + `aws configure` + `generate_events.sh` |
-| `adx-cloudtrail-reader-*` created in Step 2 | `.ingest` URI only. Never `aws configure` |
+| `adx-cloudtrail-reader-*` created in Step 2 | `.ingest` URI **and** external-table URI only. Never `aws configure` |
 
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
 flowchart TB
   A["1. Generate events"] --> B["2. Tables + IAM"]
   B --> C["3. Find object"]
-  C --> D["4. Ingest + expand"]
+  C --> D["4. Ingest one file"]
+  D --> E["5. Optional: all files via external table"]
   style A fill:#FF9900,stroke:#232F3E,color:#fff
   style B fill:#00A4EF,stroke:#005A9E,color:#fff
   style C fill:#7FBA00,stroke:#3A6B00,color:#fff
   style D fill:#F25022,stroke:#8B1A00,color:#fff
+  style E fill:#8764B8,stroke:#5C2D91,color:#fff
 ```
 
 ## Step 1 — Generate events
@@ -68,7 +70,7 @@ Create IAM user **`adx-cloudtrail-reader-<your-login>`** (console path same as M
 1. IAM → Users → Create user → name `adx-cloudtrail-reader-u01` (your login)
 2. No console access, no managed policies
 3. Inline policy from `assets/iam/s3-reader-policy.json` — replace **both** `BUCKET_NAME` with **`adx-classroom-cloudtrail`** (the shared trail bucket, **not** your Module 01 bucket `adx-log-ingestion-<your-login>`)
-4. Create access keys → copy to a notepad for the ingest URI only
+4. Create access keys → copy to a notepad for the ingest / external-table URI only
 
 ## Step 3 — Find an object
 
@@ -86,14 +88,16 @@ Copy a key that ends in `.json.gz`.
 
 Tip: filter for your login in KQL after expand (`UserArn contains "u01"`) — the trail bucket is shared with the class.
 
-## Step 4 — Ingest and expand
+## Step 4 — Ingest one file and expand
+
+Do this first so you see the contract: one `.json.gz` → one raw row → many event rows.
 
 - `multijson` loads the pretty-printed wrapper
 - `mv-expand` turns each element of `Records` into a row
 
 Open `assets/module_02/ingest_and_expand.kql`, replace bucket (`adx-classroom-cloudtrail`), region, object key, and **reader** IAM keys, and run it. Then run `assets/module_02/validate.kql`. Leave `CloudTrailEvents` in place for Module 04.
 
-**You're done when**
+**You're done with the core lab when**
 
 - `CloudTrailRaw` has a row
 - `CloudTrailEvents` has many rows (one per API call, not one per file)
@@ -105,3 +109,25 @@ Open `assets/module_02/ingest_and_expand.kql`, replace bucket (`adx-classroom-cl
 - Reader policy is on the Module 01 bucket instead of **`adx-classroom-cloudtrail`**
 - Used `json` instead of `multijson`
 - Pasted card keys instead of `adx-cloudtrail-reader-*` keys in the URI
+
+## Step 5 — Optional: ingest all files under the prefix (external table)
+
+Step 4 loads **one** object. To load **every** `.json.gz` under the nested CloudTrail folders (all dates under a region prefix) using only ADX commands:
+
+1. Open `assets/module_02/ingest_via_external_table.kql`
+2. Replace account id (if needed), bucket (default `adx-classroom-cloudtrail`), and **reader** keys
+3. Run the `.create-or-alter external table` command
+4. Smoke-check: `external_table("CloudTrailExt") | take 2`
+5. Load into your table: `.set-or-append CloudTrailRaw <| external_table("CloudTrailExt")`
+6. Expand again with the same `.set-or-append CloudTrailEvents` block in that file (or from `ingest_and_expand.kql`)
+
+**Notes**
+
+| Topic | Detail |
+|--------|--------|
+| What the external table covers | Objects under `AWSLogs/<account>/CloudTrail/us-east-1/` (nested `yyyy/mm/dd/` included) |
+| Re-run | `.set-or-append` **adds** again — duplicates if you reload the same files. Clear tables first if you are rehearsing |
+| Continuous forever | External table is a **catch-up / bulk** pull. New objects forever need an ADX Amazon S3 **data connection** (not this lab) |
+| Schedule | ADX has no built-in hourly cron. Re-run the `.set-or-append` when you want a refresh |
+
+If your class used a **personal** trail bucket instead of the shared one, point the external-table URI and the reader policy at that bucket name instead of `adx-classroom-cloudtrail`.
