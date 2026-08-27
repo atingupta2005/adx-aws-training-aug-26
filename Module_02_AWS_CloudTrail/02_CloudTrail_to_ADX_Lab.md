@@ -17,7 +17,7 @@ Scripts and KQL: `assets/module_02/`.
 | Keys | Where they go |
 |------|----------------|
 | Access card (`u01` … `u06`) | AWS console login + `aws configure` + `generate_events.sh` |
-| `adx-cloudtrail-reader-*` created in Step 2 | `.ingest` URI **and** external-table URI only. Never `aws configure` |
+| `adx-cloudtrail-reader-*` created in Step 2 | `.ingest` URI only. Never `aws configure` |
 
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
@@ -25,7 +25,7 @@ flowchart TB
   A["1. Generate events"] --> B["2. Tables + IAM"]
   B --> C["3. Find object"]
   C --> D["4. Ingest one file"]
-  D --> E["5. Optional: all files via external table"]
+  D --> E["5. Optional: many files in one .ingest"]
   style A fill:#FF9900,stroke:#232F3E,color:#fff
   style B fill:#00A4EF,stroke:#005A9E,color:#fff
   style C fill:#7FBA00,stroke:#3A6B00,color:#fff
@@ -70,7 +70,7 @@ Create IAM user **`adx-cloudtrail-reader-<your-login>`** (console path same as M
 1. IAM → Users → Create user → name `adx-cloudtrail-reader-u01` (your login)
 2. No console access, no managed policies
 3. Inline policy from `assets/iam/s3-reader-policy.json` — replace **both** `BUCKET_NAME` with **`adx-classroom-cloudtrail`** (the shared trail bucket, **not** your Module 01 bucket `adx-log-ingestion-<your-login>`)
-4. Create access keys → copy to a notepad for the ingest / external-table URI only
+4. Create access keys → copy to a notepad for the ingest URI only
 
 ## Step 3 — Find an object
 
@@ -110,24 +110,30 @@ Open `assets/module_02/ingest_and_expand.kql`, replace bucket (`adx-classroom-cl
 - Used `json` instead of `multijson`
 - Pasted card keys instead of `adx-cloudtrail-reader-*` keys in the URI
 
-## Step 5 — Optional: ingest all files under the prefix (external table)
+## Step 5 — Optional: ingest many files in one ADX command
 
-Step 4 loads **one** object. To load **every** `.json.gz` under the nested CloudTrail folders (all dates under a region prefix) using only ADX commands:
+Step 4 loads **one** object. To load **several** (or many) `.json.gz` files with KQL only, list the keys (Step 3), then put **multiple URIs** in a single `.ingest`:
 
-1. Open `assets/module_02/ingest_via_external_table.kql`
-2. Replace account id (if needed), bucket (default `adx-classroom-cloudtrail`), and **reader** keys
-3. Run the `.create-or-alter external table` command
-4. Smoke-check: `external_table("CloudTrailExt") | take 2`
-5. Load into your table: `.set-or-append CloudTrailRaw <| external_table("CloudTrailExt")`
-6. Expand again with the same `.set-or-append CloudTrailEvents` block in that file (or from `ingest_and_expand.kql`)
+```kusto
+.ingest into table CloudTrailRaw (
+  h@"https://adx-classroom-cloudtrail.s3.us-east-1.amazonaws.com/<key-1>;AwsCredentials=<reader_id>,<reader_secret>",
+  h@"https://adx-classroom-cloudtrail.s3.us-east-1.amazonaws.com/<key-2>;AwsCredentials=<reader_id>,<reader_secret>",
+  h@"https://adx-classroom-cloudtrail.s3.us-east-1.amazonaws.com/<key-3>;AwsCredentials=<reader_id>,<reader_secret>"
+)
+with (format="multijson", ingestionMappingReference="CT_Raw_Mapping")
+```
+
+Then run the same expand block from `assets/module_02/ingest_and_expand.kql` (the `.set-or-append CloudTrailEvents` section).
+
+A filled template is in `assets/module_02/ingest_many_files.kql`.
 
 **Notes**
 
 | Topic | Detail |
 |--------|--------|
-| What the external table covers | Objects under `AWSLogs/<account>/CloudTrail/us-east-1/` (nested `yyyy/mm/dd/` included) |
-| Re-run | `.set-or-append` **adds** again — duplicates if you reload the same files. Clear tables first if you are rehearsing |
-| Continuous forever | External table is a **catch-up / bulk** pull. New objects forever need an ADX Amazon S3 **data connection** (not this lab) |
-| Schedule | ADX has no built-in hourly cron. Re-run the `.set-or-append` when you want a refresh |
+| Why not an external table? | On this ADX cluster, **external tables over Amazon S3 are not supported**. Use multi-URI `.ingest` (this step) or an Amazon S3 **data connection** for continuous ingest |
+| How many URIs? | Practical for a handful or a short list you paste. For hundreds of objects, prefer a data connection or a small script that issues `.ingest` |
+| Re-run | Ingesting the same keys again **duplicates** rows. Prefer new keys, or clear tables if rehearsing |
+| Continuous forever | ADX Amazon S3 **data connection** (Event Grid) — not this lab’s one-shot `.ingest` |
 
-If your class used a **personal** trail bucket instead of the shared one, point the external-table URI and the reader policy at that bucket name instead of `adx-classroom-cloudtrail`.
+If your class used a **personal** trail bucket instead of the shared one, use that bucket name in every URI and in the reader policy.

@@ -1,0 +1,39 @@
+// Module 02 — optional multi-file ingest (after single-file Step 4).
+// ADX on this cluster does NOT support external tables over Amazon S3.
+// Use multiple h@ URIs in one .ingest instead.
+//
+// Replace each <object-key-N> with a full key from:
+//   aws s3 ls "s3://adx-classroom-cloudtrail/AWSLogs/<account>/CloudTrail/us-east-1/" --recursive
+// Replace reader keys with adx-cloudtrail-reader-<login> (never card keys).
+
+.ingest into table CloudTrailRaw (
+  h@"https://adx-classroom-cloudtrail.s3.us-east-1.amazonaws.com/<object-key-1>;AwsCredentials=<access_key_id>,<secret>",
+  h@"https://adx-classroom-cloudtrail.s3.us-east-1.amazonaws.com/<object-key-2>;AwsCredentials=<access_key_id>,<secret>",
+  h@"https://adx-classroom-cloudtrail.s3.us-east-1.amazonaws.com/<object-key-3>;AwsCredentials=<access_key_id>,<secret>"
+)
+with (format="multijson", ingestionMappingReference="CT_Raw_Mapping")
+
+CloudTrailRaw | count
+
+// Expand (same as ingest_and_expand.kql) — one row per API call
+.set-or-append CloudTrailEvents <|
+CloudTrailRaw
+| mv-expand Record = Records
+| project
+    EventTime = todatetime(Record.eventTime),
+    EventName = tostring(Record.eventName),
+    EventSource = tostring(Record.eventSource),
+    AwsRegion = tostring(Record.awsRegion),
+    SourceIP = tostring(Record.sourceIPAddress),
+    UserAgent = tostring(Record.userAgent),
+    UserIdentityType = tostring(Record.userIdentity.type),
+    UserArn = tostring(Record.userIdentity.arn),
+    AccountId = tostring(Record.userIdentity.accountId),
+    ReadOnly = tobool(Record.readOnly),
+    ErrorCode = tostring(Record.errorCode),
+    RequestParameters = Record.requestParameters,
+    ResponseElements = Record.responseElements,
+    RawRecord = Record
+
+CloudTrailEvents | count
+CloudTrailEvents | summarize n = count() by EventSource
