@@ -269,7 +269,8 @@ run_adx() {
     echo "Python not found (required for --run)" >&2
     exit 1
   fi
-  "$PYTHON" "$KUSTO_PY" run-file "$OUT_KQL" --database "$db" --cluster "$CLUSTER"
+  # Git Bash: avoid c:\c\... when Python opens ASSETS_DIR paths
+  (cd "$ROOT" && "$PYTHON" "assets/common/kusto_cmd.py" run-file "$OUT_KQL" --database "$db" --cluster "$CLUSTER")
 }
 
 load_reader_keys
