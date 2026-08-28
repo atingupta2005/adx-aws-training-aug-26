@@ -12,14 +12,12 @@ flowchart LR
   M2L["M02 Lab<br/>ingest + expand"]
   M3C["M03 Concepts<br/>CloudWatch Logs path"]
   M3L["M03 Lab<br/>Firehose to S3"]
-  M4["Module 04<br/>uses both tables"]
-  D2 --> M2C --> M2L --> M3C --> M3L --> M4
+  D2 --> M2C --> M2L --> M3C --> M3L
   style D2 fill:#8764B8,stroke:#5C2D91,color:#fff
   style M2C fill:#EC7211,stroke:#232F3E,color:#fff
   style M2L fill:#FF9900,stroke:#232F3E,color:#fff
   style M3C fill:#3B48CC,stroke:#1B2266,color:#fff
   style M3L fill:#00A4EF,stroke:#005A9E,color:#fff
-  style M4 fill:#0078D4,stroke:#005A9E,color:#fff
 ```
 
 ```bash
@@ -101,7 +99,7 @@ flowchart TB
 3. **Reader policy must keep `s3:GetBucketLocation`** — copy the full `assets/iam/s3-reader-policy.json` and replace both `BUCKET_NAME` strings.
 4. **M03 order** — log group → S3 → Firehose **Active** → subscription filter → **then** `put_log_events.sh`. Events before the filter never appear in S3.
 5. **Git Bash / VS Code** — before any `aws logs` command: `export MSYS_NO_PATHCONV=1`
-6. **Do not delete** the shared trail or `adx-classroom-cloudtrail`. Do not drop `CloudTrailEvents` or `CloudWatchLogs` — Module 04 needs them.
+6. **Do not delete** the shared trail or `adx-classroom-cloudtrail`. Do not drop `CloudTrailEvents` or `CloudWatchLogs` — later modules need them (your trainer will issue those labs when ready).
 
 ## ADX
 

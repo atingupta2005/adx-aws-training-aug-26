@@ -9,3 +9,5 @@ Courseware for ADX + AWS labs. Login: `u01`–`u06`. Database: `ADXTrainingDB_<y
 **Day 1:** `00_Day1_How_We_Work.md` · **Day 2:** `00_Day2_How_We_Work.md`
 
 GitHub: https://github.com/atingupta2005/adx-aws-training-aug-26
+
+This repo includes **Modules 01–03** only. Your trainer will issue later modules when the class reaches them.
