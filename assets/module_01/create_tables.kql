@@ -1,5 +1,5 @@
 // Module 01 — run in ADX Web UI on ADXTrainingDB_<your-login>
-print Database = current_database()
+// Run print Database = current_database() first (see lab Step 3) before this file.
 
 .create table AppLogs_JSON (
     LogTime: datetime,

@@ -1,21 +1,13 @@
 # Module 02 — CloudTrail to ADX
 
-CloudTrail is AWS’s record of API activity: who called which operation, from which IP, in which region, and whether it failed. The files are not a flat CSV. Each object is gzipped JSON with a top-level `Records` array.
+> **Reading order:** `02_CloudTrail_Primer.md` → Concepts (this file) → Lab → Exercises.
 
-Module 01 used a file **you** uploaded. This module uses a file **AWS** wrote.
+Module 01 used a file **you** uploaded. This module uses gzipped JSON **AWS** wrote — top-level `Records` array, delivery often **5–15 minutes**.
 
-- Delivery is slow (often 5–15 minutes). That wait is trail delivery, not ADX
-- The JSON is pretty-printed across many lines, so ingest format is `multijson`, not single-line `json`
-- After ingest you still have **one row per file**. Audit questions need **one row per API call**, so you expand `Records` into `CloudTrailEvents`
+- Ingest format: **`multijson`** (pretty-printed file, not single-line `json`)
+- **`CloudTrailRaw`**: one row per file → **`CloudTrailEvents`**: one row per API call after expand
 
-**Example.** You create and delete a temp bucket. You expect `CreateBucket` and `DeleteBucket` in KQL. If you only queried `CloudTrailRaw`, you would see one giant array and could not `summarize by EventName`.
-
-## In class
-
-- The trail and destination bucket are **shared**. Do not create or delete that trail (one trail for the room)
-- You need IAM read on the **trail** bucket (`assets/iam/s3-reader-policy.json` with that bucket name)
-- Work in `ADXTrainingDB_<your-login>` (example `ADXTrainingDB_u01`)
-- Leave `CloudTrailEvents` for Module 04
+AWS primer (what CloudTrail is, shared trail): **`02_CloudTrail_Primer.md`**.
 
 ## How data moves
 
@@ -47,14 +39,30 @@ flowchart TB
   style KQL fill:#107C10,stroke:#0B5A0B,color:#fff
 ```
 
-Use the wait for tables and IAM. An empty prefix after two minutes does not mean ingest is broken.
+Empty S3 after two minutes is normal — build tables and IAM while waiting.
 
-## Object shape
+## One file → many rows
 
-```text
-{ "Records": [ { "eventTime": "...", "eventName": "CreateBucket", ... }, ... ] }
+```mermaid
+%%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
+flowchart LR
+  GZ[".json.gz"]
+  RAW[("CloudTrailRaw")]
+  EVT[("CloudTrailEvents")]
+  GZ -->|"multijson"| RAW
+  RAW -->|"mv-expand Records"| EVT
+  style GZ fill:#232F3E,stroke:#FF9900,color:#fff
+  style RAW fill:#0078D4,stroke:#005A9E,color:#fff
+  style EVT fill:#50E6FF,stroke:#0078D4,color:#003A5D
 ```
 
-- Mapping stores `$.Records` as `dynamic`
-- After expand, useful fields: `eventTime`, `eventName`, `eventSource`, `awsRegion`, `userIdentity.arn`, `errorCode`
-- Two tables on purpose: raw = file as delivered; events = what you query
+After expand, query: `eventTime`, `eventName`, `eventSource`, `awsRegion`, `userIdentity.arn`, `errorCode`. Leave `CloudTrailEvents` for Module 04.
+
+## Real activity vs lab script
+
+CloudTrail records **every** API call in your account continuously. Delivery to S3 is **not** instant (typically **5–15 minutes**). The lab script `generate_events.sh` only **schedules recognizable API calls** — it is not fake JSON. For console-only real activity and bulk ingest without manual keys, see **`assets/REAL_VS_LAB_DATA.md`** and Step 5 in the lab (`ingest_s3_prefix.sh`).
+
+## In class
+
+- Shared bucket **`adx-classroom-cloudtrail`** — reader policy on that bucket only
+- Filter by your ARN in KQL (`UserArn contains "<login>"`)

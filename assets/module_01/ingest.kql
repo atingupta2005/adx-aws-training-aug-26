@@ -1,5 +1,6 @@
 // Module 01 — replace bucket, region, and IAM keys, then run in ADX Web UI
 // Keys = adx-s3-reader-<your-login> (not the u01–u06 keys from aws configure)
+// Run each .ingest below separately (JSON first, then CSV).
 .ingest into table AppLogs_JSON
 h@"https://<bucket>.s3.<region>.amazonaws.com/aws_api_logs.ndjson;AwsCredentials=<access_key_id>,<secret>"
 with (format="json", ingestionMappingReference="JSON_Mapping")

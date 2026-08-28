@@ -1,2 +1,2 @@
+# Shell scripts use LF line endings (Amazon Linux lab VM)
 *.sh text eol=lf
-*.kql text eol=lf

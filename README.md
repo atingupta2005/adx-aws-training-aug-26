@@ -1,12 +1,11 @@
 # Azure Data Explorer (ADX) and AWS Integration
 
-Courseware for the ADX + AWS integration labs. Use your assigned login (`u01`–`u06`). Database: `ADXTrainingDB_<your-login>`.
+Courseware for ADX + AWS labs. Login: `u01`–`u06`. Database: `ADXTrainingDB_<your-login>`.
 
-Open the lab VS Code URL from your access card. Course files are in `~/adx-aws-training`.
+**Each module:** Primer → Concepts → Lab → Exercises (`assets/module_XX/explore.kql`). See `00_Course_Agenda.md`.
 
-| Day | Start here |
-|-----|------------|
-| Day 1 | `00_Day1_How_We_Work.md` → Module 01 |
-| Day 2 | `Module_02_AWS_CloudTrail/` then `Module_03_AWS_CloudWatch/` |
+**S3 → ADX:** `assets/ingest_s3_to_adx.sh` lists nested S3 keys and ingests without naming each file (`--module m01|m02|m03|m08`).
+
+**Day 1:** `00_Day1_How_We_Work.md` · **Day 2:** `00_Day2_How_We_Work.md`
 
 GitHub: https://github.com/atingupta2005/adx-aws-training-aug-26

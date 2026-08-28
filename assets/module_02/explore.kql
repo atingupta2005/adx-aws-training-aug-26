@@ -1,0 +1,201 @@
+// Module 02 — explore CloudTrail data in ADX
+// Database: ADXTrainingDB_<your-login>
+// Run ONE statement (or one commented section) at a time in the ADX Web UI.
+// Prerequisite: CloudTrailRaw + CloudTrailEvents populated (lab Steps 4–5).
+
+// =============================================================================
+// A. Sanity / shape
+// =============================================================================
+
+CloudTrailRaw | count
+
+CloudTrailEvents | count
+
+CloudTrailEvents | getschema
+
+CloudTrailEvents | take 10
+
+CloudTrailRaw
+| take 1
+| extend RecordCount = array_length(Records)
+| project RecordCount
+
+// =============================================================================
+// B. Who / what / where
+// =============================================================================
+
+// APIs by service
+CloudTrailEvents
+| summarize EventCount = count() by EventSource
+| order by EventCount desc
+
+// Top API operations
+CloudTrailEvents
+| summarize EventCount = count() by EventName
+| order by EventCount desc
+| take 20
+
+// Service + operation
+CloudTrailEvents
+| summarize EventCount = count() by EventSource, EventName
+| order by EventCount desc
+| take 30
+
+// Callers (IAM users / roles)
+CloudTrailEvents
+| where isnotempty(UserArn)
+| summarize EventCount = count() by UserArn, UserIdentityType
+| order by EventCount desc
+| take 20
+
+// Your lab login only (change u01 → your login)
+CloudTrailEvents
+| where UserArn contains "u01"
+| project EventTime, EventName, EventSource, UserArn, SourceIP, ErrorCode
+| order by EventTime desc
+| take 50
+
+// Regions
+CloudTrailEvents
+| summarize EventCount = count() by AwsRegion
+| order by EventCount desc
+
+// Source IPs
+CloudTrailEvents
+| where isnotempty(SourceIP)
+| summarize EventCount = count() by SourceIP
+| order by EventCount desc
+| take 20
+
+// =============================================================================
+// C. Time patterns
+// =============================================================================
+
+CloudTrailEvents
+| summarize EventCount = count() by bin(EventTime, 5m)
+| render timechart
+
+CloudTrailEvents
+| summarize EventCount = count() by bin(EventTime, 1h), EventSource
+| render timechart
+
+CloudTrailEvents
+| summarize
+    FirstSeen = min(EventTime),
+    LastSeen = max(EventTime),
+    EventCount = count()
+
+// =============================================================================
+// D. Errors and mutations
+// =============================================================================
+
+// Failed API calls
+CloudTrailEvents
+| where isnotempty(ErrorCode)
+| summarize Failures = count() by ErrorCode, EventName, EventSource
+| order by Failures desc
+
+CloudTrailEvents
+| where isnotempty(ErrorCode)
+| project EventTime, EventName, EventSource, ErrorCode, UserArn, SourceIP
+| order by EventTime desc
+| take 30
+
+// Writes vs reads
+CloudTrailEvents
+| summarize EventCount = count() by ReadOnly
+| order by EventCount desc
+
+// Mutations only (create / delete / put / update style names)
+CloudTrailEvents
+| where ReadOnly == false
+| project EventTime, EventName, EventSource, UserArn, SourceIP
+| order by EventTime desc
+| take 40
+
+// =============================================================================
+// E. Lab-generated activity (generate_events.sh)
+// =============================================================================
+
+CloudTrailEvents
+| where EventName in ("CreateBucket", "DeleteBucket", "CreateUser", "DeleteUser", "ListBuckets", "DescribeRegions")
+| project EventTime, EventName, EventSource, UserArn, ErrorCode
+| order by EventTime desc
+
+CloudTrailEvents
+| where EventName in ("CreateBucket", "DeleteBucket")
+| extend BucketName = tostring(RequestParameters.bucketName)
+| project EventTime, EventName, BucketName, UserArn, ErrorCode
+
+CloudTrailEvents
+| where EventName in ("CreateUser", "DeleteUser")
+| extend IamUser = tostring(RequestParameters.userName)
+| project EventTime, EventName, IamUser, UserArn, ErrorCode
+
+// =============================================================================
+// F. Dynamic / nested JSON
+// =============================================================================
+
+CloudTrailEvents
+| where isnotempty(RequestParameters)
+| project EventTime, EventName, RequestParameters
+| take 10
+
+CloudTrailEvents
+| where EventSource == "s3.amazonaws.com"
+| extend Bucket = tostring(RequestParameters.bucketName)
+| where isnotempty(Bucket)
+| summarize Calls = count() by EventName, Bucket
+| order by Calls desc
+
+CloudTrailEvents
+| where EventSource == "iam.amazonaws.com"
+| extend IamUser = tostring(RequestParameters.userName)
+| project EventTime, EventName, IamUser, UserArn, ResponseElements
+| take 20
+
+// Peek at raw expanded record
+CloudTrailEvents
+| take 1
+| project RawRecord
+
+// =============================================================================
+// G. Security-style spot checks (demo queries)
+// =============================================================================
+
+// Console vs API style user agents (sample)
+CloudTrailEvents
+| extend AgentFamily = case(
+    UserAgent has "console.amazonaws.com", "Console",
+    UserAgent has "aws-cli", "AWS-CLI",
+    UserAgent has "aws-sdk", "SDK",
+    UserAgent has "S3Console", "S3-Console",
+    "Other")
+| summarize EventCount = count() by AgentFamily
+| order by EventCount desc
+
+// Activity outside us-east-1 (multi-region trail noise)
+CloudTrailEvents
+| where AwsRegion != "us-east-1"
+| summarize EventCount = count() by AwsRegion, EventSource
+| order by EventCount desc
+| take 20
+
+// Same user, many distinct APIs (busy principal)
+CloudTrailEvents
+| where isnotempty(UserArn)
+| summarize DistinctApis = dcount(EventName), EventCount = count() by UserArn
+| order by DistinctApis desc
+| take 15
+
+// =============================================================================
+// H. Compare raw vs events
+// =============================================================================
+
+print
+    RawFiles = toscalar(CloudTrailRaw | count),
+    EventRows = toscalar(CloudTrailEvents | count)
+
+CloudTrailRaw
+| extend RecordCount = array_length(Records)
+| summarize Files = count(), TotalRecordsInFiles = sum(RecordCount), AvgRecordsPerFile = avg(RecordCount)

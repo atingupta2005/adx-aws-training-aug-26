@@ -1,0 +1,65 @@
+// Module 01 — explore S3-ingested data in ADX
+// Database: ADXTrainingDB_<your-login>
+// Run ONE statement at a time in the ADX Web UI.
+// Prerequisite: AppLogs_JSON and AppLogs_CSV populated (lab Steps 3–5).
+
+// =============================================================================
+// A. Sanity
+// =============================================================================
+
+print Database = current_database()
+
+AppLogs_JSON | count
+AppLogs_CSV | count
+
+AppLogs_JSON | getschema
+AppLogs_CSV | getschema
+
+AppLogs_JSON | take 5
+AppLogs_CSV | take 5
+
+// =============================================================================
+// B. JSON exploration
+// =============================================================================
+
+AppLogs_JSON
+| summarize Events = count() by ServiceName
+| order by Events desc
+
+AppLogs_JSON
+| summarize Events = count() by LogLevel
+| order by Events desc
+
+AppLogs_JSON
+| where isnotempty(HttpStatus)
+| summarize Events = count() by HttpStatus
+| order by HttpStatus asc
+
+AppLogs_JSON
+| summarize Events = count() by bin(LogTime, 1h)
+| render timechart
+
+AppLogs_JSON
+| where Message contains "bucket" or Message contains "Bucket"
+| project LogTime, LogLevel, ServiceName, Message
+| take 20
+
+// =============================================================================
+// C. CSV exploration
+// =============================================================================
+
+AppLogs_CSV
+| summarize Regions = count() by RegionCode
+| order by RegionCode asc
+
+AppLogs_CSV
+| where RegionName contains "Europe" or RegionName contains "Asia"
+| project RegionCode, RegionName, IsOptInRegion
+
+// =============================================================================
+// D. Ingestion health
+// =============================================================================
+
+.show ingestion failures
+| where Table in ("AppLogs_JSON", "AppLogs_CSV")
+| take 10

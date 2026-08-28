@@ -1,4 +1,5 @@
 // Replace bucket (adx-classroom-cloudtrail), region, object key, and adx-cloudtrail-reader-<login> keys.
+// Run the .ingest block first, then CloudTrailRaw | take 1, then the .set-or-append block.
 .ingest into table CloudTrailRaw
 h@"https://<bucket>.s3.<region>.amazonaws.com/<object-key>;AwsCredentials=<access_key_id>,<secret>"
 with (format="multijson", ingestionMappingReference="CT_Raw_Mapping")

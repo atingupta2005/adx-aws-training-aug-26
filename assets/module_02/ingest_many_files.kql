@@ -1,5 +1,6 @@
 // Module 02 — optional multi-file ingest (after single-file Step 4).
-// ADX on this cluster does NOT support external tables over Amazon S3.
+// Prefer the script: bash assets/module_02/ingest_s3_prefix.sh us-east-1 <your-login> --max 5
+// ADX on this cluster does NOT support external tables over Amazon S3 or S3 wildcards.
 // Use multiple h@ URIs in one .ingest instead.
 //
 // Replace each <object-key-N> with a full key from:

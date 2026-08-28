@@ -1,0 +1,74 @@
+// Module 03 — explore CloudWatch envelope data in ADX
+// Database: ADXTrainingDB_<your-login>
+// Run ONE statement at a time.
+// Prerequisite: CloudWatchLogs populated (lab Steps 3–4).
+
+// =============================================================================
+// A. Sanity
+// =============================================================================
+
+CloudWatchLogs | count
+
+CloudWatchLogs
+| summarize Events = count() by messageType
+| order by Events desc
+
+CloudWatchLogs | getschema
+
+// =============================================================================
+// B. Envelope fields
+// =============================================================================
+
+CloudWatchLogs
+| where messageType == "DATA_MESSAGE"
+| take 5
+
+CloudWatchLogs
+| where messageType == "DATA_MESSAGE"
+| summarize Events = count() by logGroup, logStream
+| order by Events desc
+
+CloudWatchLogs
+| where messageType == "DATA_MESSAGE"
+| summarize Events = count() by bin(ingestion_time(), 5m)
+| render timechart
+
+// =============================================================================
+// C. Expand logEvents
+// =============================================================================
+
+CloudWatchLogs
+| where messageType == "DATA_MESSAGE"
+| mv-expand e = logEvents
+| project logGroup, logStream,
+    EventTime = e.timestamp,
+    Message = e.message,
+    EventId = e.id
+| order by EventTime desc
+| take 50
+
+CloudWatchLogs
+| where messageType == "DATA_MESSAGE"
+| mv-expand e = logEvents
+| extend parsed = parse_json(tostring(e.message))
+| where isnotempty(parsed)
+| take 10
+
+// =============================================================================
+// D. Message text search
+// =============================================================================
+
+CloudWatchLogs
+| where messageType == "DATA_MESSAGE"
+| mv-expand e = logEvents
+| where tostring(e.message) contains "account" or tostring(e.message) contains "ARN"
+| project EventTime = e.timestamp, Message = e.message
+| take 20
+
+// =============================================================================
+// E. Ingestion health
+// =============================================================================
+
+.show ingestion failures
+| where Table == "CloudWatchLogs"
+| take 10
