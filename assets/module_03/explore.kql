@@ -54,6 +54,31 @@ CloudWatchLogs
 | where isnotempty(parsed)
 | take 10
 
+// App-shaped fields from app_traffic_simulator.sh (or console JSON events)
+CloudWatchLogs
+| where messageType == "DATA_MESSAGE"
+| mv-expand e = logEvents
+| extend parsed = parse_json(tostring(e.message))
+| where isnotempty(parsed.event)
+| project
+    EventTime = e.timestamp,
+    Level = tostring(parsed.level),
+    Event = tostring(parsed.event),
+    Service = tostring(parsed.service),
+    TraceId = tostring(parsed.traceId),
+    LatencyMs = toint(parsed.latencyMs),
+    OrderId = tostring(parsed.orderId)
+| order by EventTime desc
+| take 50
+
+CloudWatchLogs
+| where messageType == "DATA_MESSAGE"
+| mv-expand e = logEvents
+| extend parsed = parse_json(tostring(e.message))
+| where tostring(parsed.level) == "ERROR" or tostring(parsed.level) == "WARN"
+| summarize n = count() by Event = tostring(parsed.event), Level = tostring(parsed.level)
+| order by n desc
+
 // =============================================================================
 // D. Message text search
 // =============================================================================
@@ -62,6 +87,7 @@ CloudWatchLogs
 | where messageType == "DATA_MESSAGE"
 | mv-expand e = logEvents
 | where tostring(e.message) contains "account" or tostring(e.message) contains "ARN"
+    or tostring(e.message) contains "order.created" or tostring(e.message) contains "ERROR"
 | project EventTime = e.timestamp, Message = e.message
 | take 20
 

@@ -1,8 +1,8 @@
 # Module 03 — Lab
 
-Build log group → Firehose → S3 in the console, create the ADX table, put a few live events, wait for an object, ingest the envelope.
+Build log group → Firehose → S3 in the console, create the ADX table, **send real-shaped application logs**, wait for an object, ingest the envelope.
 
-Scripts and KQL: `assets/module_03/`.
+Scripts and KQL: `assets/module_03/`. Real vs probe data: `assets/REAL_VS_LAB_DATA.md`.
 
 **Names** (use your login from the access card: `u01` … `u06`. Do not invent initials.)
 
@@ -19,8 +19,8 @@ Scripts and KQL: `assets/module_03/`.
 Before you start:
 
 - Git Bash: `export MSYS_NO_PATHCONV=1` before any `aws logs` command
-- Do not put events until the subscription filter exists
-- On Windows the put script uses `python` if `python3` is the Store stub
+- Do **not** send traffic until the subscription filter exists
+- On Windows the scripts use `python` if `python3` is the Store stub
 
 **Two key pairs:**
 
@@ -48,7 +48,8 @@ flowchart TB
   subgraph adx [ADX]
     TBL[("CloudWatchLogs")]
   end
-  PUT["put-log-events"] --> LG
+  APP["Checkout-API traffic<br/>(preferred)"] --> LG
+  PROBE["put_log_events<br/>(smoke only)"] -.-> LG
   LG --> STR
   STR --> SF
   SF --> FH
@@ -58,6 +59,8 @@ flowchart TB
   style kin fill:#E8EAF6,stroke:#3B48CC,color:#1B2266
   style s3 fill:#232F3E,stroke:#FF9900,color:#fff
   style adx fill:#E6F2FB,stroke:#0078D4,color:#003A5D
+  style APP fill:#3B48CC,stroke:#1B2266,color:#fff
+  style PROBE fill:#E8E8E8,stroke:#666,color:#333
   style LG fill:#FF9900,stroke:#232F3E,color:#fff
   style FH fill:#3B48CC,stroke:#1B2266,color:#fff
   style BKT fill:#232F3E,stroke:#FF9900,color:#fff
@@ -68,7 +71,7 @@ flowchart TB
 
 **Goal:** CloudWatch log events flow to S3 through Firehose so ADX can pull one object.
 
-**Correct order:** log group + stream → S3 bucket → Firehose (Active) → subscription filter → put events.
+**Correct order:** log group + stream → S3 bucket → Firehose (Active) → subscription filter → **then** generate traffic.
 
 Events written **before** the subscription filter exists are **not** shipped retroactively.
 
@@ -128,18 +131,61 @@ CloudWatch sends gzip-compressed batches to Firehose. Decompression must be on s
 
 **Checkpoint:** `.show tables` includes `CloudWatchLogs`.
 
-## Step 3 — Put events
+## Step 3 — Generate logs (real project first)
 
-**Goal:** Three live messages (with your account id and ARN) reach S3 via the filter + Firehose path.
+**Goal:** Fill your log stream the way a real service would — structured JSON for checkout / auth / inventory — then confirm CloudWatch **and** S3 before ADX.
+
+Do this **only after** Step 1d (subscription filter exists).
+
+### Path A — Preferred: application-shaped traffic
+
+Simulates a small **checkout API** writing lines via `PutLogEvents` (same API apps use when they log straight to CloudWatch):
+
+```bash
+export MSYS_NO_PATHCONV=1
+bash assets/module_03/app_traffic_simulator.sh us-east-1 <your-login>
+```
+
+**Example:** `bash assets/module_03/app_traffic_simulator.sh us-east-1 u01`
+
+Optional third argument = number of traffic batches (default `2`):  
+`bash assets/module_03/app_traffic_simulator.sh us-east-1 u01 3`
+
+**What you should see in CloudWatch (console):**
+
+1. **CloudWatch** → **Log groups** → `/adx-training/app-logs-<your-login>` → stream `Instance_01_<your-login>`
+2. Messages containing events such as `order.created`, `auth.login.failed`, `inventory.reserve.failed`, `http.request`, with fields like `service`, `host`, `traceId`, `latencyMs`
+
+**Tips (real-world habits):**
+
+| Tip | Why |
+|-----|-----|
+| Prefer **one JSON object per log line** | Matches production logging libraries and ADX `parse_json` |
+| Check the **stream in the console first** | If CloudWatch is empty, Firehose/S3/ADX cannot help |
+| Wait **60–90 seconds** after traffic | Firehose buffer (1 MiB / 60 s in this lab) |
+| Re-run the simulator to add more “hours” of traffic | Continuous apps keep writing; one batch is a snapshot |
+| Console **Create log event** | Paste a JSON line for a one-off ERROR without any script |
+
+### Path B — Quick pipeline smoke only
+
+Three short probe lines (your account id + ARN). Use when you only need to prove S3 got an object:
 
 ```bash
 export MSYS_NO_PATHCONV=1
 bash assets/module_03/put_log_events.sh us-east-1 <your-login>
 ```
 
-**Example:** `bash assets/module_03/put_log_events.sh us-east-1 u01`
+Do **not** stop here for the full learning goal — also run Path A (or console Create log event with JSON) so queries in ADX look like ops data.
 
-Wait **60–90 seconds** (Firehose buffer), then:
+### Path C — Manual console / CLI (no simulator)
+
+1. Log group → stream → **Create log event** → paste e.g.  
+   `{"level":"ERROR","service":"checkout-api","event":"payment.declined","orderId":"ord-manual-1"}`
+2. Or see CLI one-liners in `assets/REAL_VS_LAB_DATA.md` (Module 03).
+
+### Confirm S3
+
+Wait **60–90 seconds**, then:
 
 ```bash
 aws s3 ls s3://adx-cw-firehose-<your-login>/ --recursive
@@ -147,7 +193,7 @@ aws s3 ls s3://adx-cw-firehose-<your-login>/ --recursive
 
 You should see a new object under a path like `2026/08/28/01/cw-to-adx-stream-u01-...`.
 
-**If the bucket is empty:** confirm subscription filter exists and Firehose **decompress for CloudWatch Logs** is on before re-running the put script.
+**If the bucket is empty:** confirm subscription filter exists and Firehose **decompress for CloudWatch Logs** is on before sending traffic again.
 
 ## Step 4 — Ingest and check
 
@@ -163,13 +209,14 @@ bash assets/ingest_s3_to_adx.sh --module m03 --login <your-login> --region us-ea
 Or open `assets/module_03/ingest.kql` for a single object, or paste `~/adx-lab-s3/m03/ingest_generated.kql` in the Web UI.
 3. Run `assets/module_03/validate.kql`
 4. Filter to `messageType == "DATA_MESSAGE"`
-5. Leave `CloudWatchLogs` for Module 04
+5. Expand `logEvents` and parse inner JSON — look for `order.created` / `ERROR` from the simulator
+6. Leave `CloudWatchLogs` for Module 04
 
 **You're done when**
 
+- CloudWatch stream shows application-shaped JSON (not only three probe lines)
 - An object showed up in `adx-cw-firehose-<your-login>`
-- `CloudWatchLogs` has a `DATA_MESSAGE` row
-- `logEvents` is not empty
+- `CloudWatchLogs` has a `DATA_MESSAGE` row and `logEvents` is not empty
 
 **If S3 is empty**
 
@@ -177,9 +224,9 @@ Or open `assets/module_03/ingest.kql` for a single object, or paste `~/adx-lab-s
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
 flowchart TD
   START["S3 bucket empty?"] --> Q1{"Subscription filter exists?"}
-  Q1 -->|no| FIX1["Create filter first<br/>then put events again"]
+  Q1 -->|no| FIX1["Create filter first<br/>then send traffic again"]
   Q1 -->|yes| Q2{"Events sent before filter?"}
-  Q2 -->|yes| FIX2["Re-run put_log_events.sh"]
+  Q2 -->|yes| FIX2["Re-run app_traffic_simulator.sh"]
   Q2 -->|no| Q3{"Firehose decompress ON?"}
   Q3 -->|no| FIX3["Turn on decompression<br/>under Transform records"]
   Q3 -->|yes| Q4{"Firehose Active?"}

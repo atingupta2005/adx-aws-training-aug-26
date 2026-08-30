@@ -8,7 +8,7 @@ In production, telemetry arrives continuously from services and users. In class 
 |--------|----------------------------------|--------------------------------|-----------------|
 | **01 S3** | Any AWS CLI or console action you take | Script **is** real data — it calls live APIs (`sts`, `s3`, `ec2`) | `capture_and_upload.sh` |
 | **02 CloudTrail** | Every API call in your account (console, CLI, SDK, other users) | Trail delivery to S3 takes **5–15 minutes**; script creates **labeled** events you can find in KQL | `generate_events.sh` |
-| **03 CloudWatch** | Apps, Lambda, EC2 agents, Container Insights → log groups | Subscription + Firehose must exist first; script sends **structured test lines** with your ARN | `put_log_events.sh` |
+| **03 CloudWatch** | Apps, Lambda, CW agent → log groups (JSON lines: orders, auth, latency) | Prefer `app_traffic_simulator.sh` (checkout-API shape); `put_log_events.sh` only for **quick pipeline smoke** | `app_traffic_simulator.sh`, `put_log_events.sh` |
 | **05–07** | OS logs, nginx/httpd, CPU/memory on the Linux lab VM | Beats/Logstash run on a **shared VM** with turn-taking | Module lab configs |
 
 ## Module 01 — already “live”
@@ -73,44 +73,89 @@ bash assets/ingest_s3_to_adx.sh --module m02 --login <your-login> --max 5 [--run
 
 Same script supports `--module m01|m03|m08` with nested prefix listing. See `assets/ingest_s3_to_adx.sh --help`.
 
-## Module 03 — real pipeline, scripted log lines
+## Module 03 — real pipeline; prefer real-shaped application logs
 
 ### Real-time flow (production)
 
-Applications and AWS services write to CloudWatch Logs continuously. A **subscription filter** pushes matching log streams to Firehose → S3 in near real time (buffer ~60s in our lab).
+```mermaid
+%%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
+flowchart LR
+  APP["App / Lambda / CW agent"] --> LG["Log group"]
+  LG --> SF["Subscription filter"]
+  SF --> FH["Firehose"]
+  FH -->|"~60s buffer"| S3[("S3")]
+  S3 --> ADX["ADX .ingest"]
+  style APP fill:#3B48CC,stroke:#1B2266,color:#fff
+  style LG fill:#FF9900,stroke:#232F3E,color:#fff
+  style S3 fill:#232F3E,stroke:#FF9900,color:#fff
+  style ADX fill:#0078D4,stroke:#005A9E,color:#fff
+```
 
-Examples of **real** sources (not used in the minimal lab):
+In production, **nothing special “generates lab data.”** Services emit logs as they run:
 
-- EC2 CloudWatch agent → log group for `/var/log/messages`
-- Lambda function logs (automatic log group)
-- Application code using AWS SDK `PutLogEvents`
+| Real project source | What appears in CloudWatch | Classroom fit |
+|---------------------|----------------------------|---------------|
+| **Microservice / API** (SDK `PutLogEvents` or logging library → CW) | Structured JSON: order id, user id, latency, HTTP status | **Primary lab path** — `app_traffic_simulator.sh` |
+| **AWS Lambda** | Automatic `/aws/lambda/<name>` streams on every invoke | Optional stretch (trainer/permissions) |
+| **CloudWatch agent on EC2** | `/var/log/secure`, nginx access, app `.log` files | Later modules (Linux VM) + optional M03 tip |
+| **Container Insights / ECS / EKS** | Task/pod stdout → log groups | Out of scope for this short lab |
+| **Console “Create log event”** | Manual lines (support / debug) | Fine for one-off checks |
 
-### Why `put_log_events.sh` exists
+The **pipeline** (filter → Firehose → S3 → ADX) is identical for all sources. Only **who writes the log line** changes.
 
-- You must create log group, Firehose, and subscription filter **before** any export.
-- A standalone script guarantees three **JSON messages** with your **live account id and ARN** for KQL checks.
-- Events sent **before** the subscription filter exists are **never** backfilled to S3.
+### What to run in class (recommended order)
 
-### Real alternative after the pipeline exists
+1. **Finish lab Step 1** (log group, Firehose Active, subscription filter). Events before the filter **never** backfill to S3.
+2. **Generate real-shaped traffic** (preferred):
 
-Once Step 1 of the lab is done, anything that writes to your log group is “real”:
+```bash
+export MSYS_NO_PATHCONV=1
+bash assets/module_03/app_traffic_simulator.sh us-east-1 <your-login>
+```
+
+This writes multi-event batches that look like a **checkout API**: health checks, login success/fail, order create, payment, stock-out errors, slow requests — with `service`, `host`, `traceId`, `latencyMs`, etc.
+
+3. **Quick smoke only** (three probe lines with your ARN):
+
+```bash
+bash assets/module_03/put_log_events.sh us-east-1 <your-login>
+```
+
+Use this when you only need to prove S3 got *something* before building ADX tables.
+
+### Real-world tips (how teams actually produce CW Logs)
+
+1. **Log shape** — Prefer one **JSON object per line** (`level`, `service`, `event`, `traceId`, business ids). That is what ADX `parse_json` and Logs Insights expect.
+2. **Log stream naming** — Production often uses instance id, task id, or request date. Lab uses `Instance_01_<login>` so every student has a stable name.
+3. **Never write before the subscription exists** — Same rule in prod when you add a new Firehose destination: enable the filter, then redeploy / resume traffic.
+4. **Verify in CloudWatch first** — Console → Log groups → stream → confirm INFO/WARN/ERROR, then wait for Firehose (~60–90s) → list S3. Do not jump straight to ADX if the stream is empty.
+5. **Console alternative (no script):** Log group → stream → **Create log event** → paste a JSON line such as `{"level":"ERROR","service":"checkout-api","event":"payment.declined","orderId":"ord-demo-1"}`. Repeat 5–10 times with different `event` values.
+6. **CLI one-liner (manual “real” line):**
 
 ```bash
 export MSYS_NO_PATHCONV=1
 aws logs put-log-events \
   --log-group-name "/adx-training/app-logs-<your-login>" \
   --log-stream-name "Instance_01_<your-login>" \
-  --log-events '[{"timestamp":'$(($(date +%s)*1000))',"message":"manual console test"}]'
+  --log-events '[{"timestamp":'$(($(date +%s)*1000))',"message":"{\"level\":\"INFO\",\"service\":\"checkout-api\",\"event\":\"order.created\",\"orderId\":\"ord-manual-1\"}"}]'
 ```
 
-Or install the CloudWatch agent on a host (outside scope of the short lab).
+(If the stream already has events, add `--sequence-token` from `describe-log-streams` — the simulator script does this for you.)
+
+7. **Optional Lambda path (stretch):** Create a tiny Lambda that `print()`s JSON, invoke it 3 times, attach a **second** subscription filter from `/aws/lambda/<name>` to the same Firehose (or create a dedicated Firehose). That is how serverless teams feed the same S3 → ADX path without a custom log group.
+
+### Why keep `put_log_events.sh`
+
+- Fast pipeline proof after Step 1.
+- Guarantees three messages with **your live account id and ARN**.
+- Not a replacement for application-shaped traffic — use `app_traffic_simulator.sh` (or console events) for the “real project” feeling.
 
 ## When scripts feel “artificial” — and why that is OK here
 
 | Concern | Answer |
 |---------|--------|
-| “Scripts aren’t production” | M01/M02 scripts invoke **real AWS APIs**; M03 uses **real CloudWatch/Firehose/S3** with **hand-written log lines** |
-| “Not real time” | CloudTrail S3 delay is an **AWS platform** behavior — production pipelines use the same wait or event-driven ingest |
-| “I want continuous ingest” | Production uses Event Grid, Lambda, or ADX data connections — out of scope for Module 02’s `.ingest` lesson |
+| “Scripts aren’t production” | M01/M02 scripts invoke **real AWS APIs**. M03’s **pipeline** is production-shaped; `app_traffic_simulator.sh` mimics microservice log lines via the same PutLogEvents API apps use. |
+| “Not real time” | CloudTrail S3 delay and Firehose buffering are **AWS platform** behaviors — production pipelines have the same waits (or use streaming ingest products). |
+| “I want continuous ingest” | Production may use Event Grid, Lambda, or ADX data connections — out of scope for Module 02/03’s `.ingest` lesson |
 
-The lab teaches **the ingest contract** (S3 object → mapping → table). Scripts shorten setup; the **data path** matches production.
+The lab teaches **the ingest contract** (S3 object → mapping → table). Prefer **realistic log content**; use short scripts only to save class time on plumbing.
