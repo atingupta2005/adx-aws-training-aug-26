@@ -4,7 +4,7 @@
 
 CloudWatch **Logs** reach ADX through subscription filter → Firehose → S3 → `.ingest`. ADX never calls the CloudWatch API.
 
-You build one log group, one Firehose stream, and one bucket per student. Firehose writes an **envelope** object — ingest that envelope, not only the inner `message` string.
+**Rule:** In real projects, CloudWatch fills because **applications and AWS services run**. Lab Step 3 uses a **checkout API you call with curl** or a **Lambda you invoke** — not a batch script whose only purpose is to invent log lines.
 
 ## How data moves
 
@@ -12,7 +12,7 @@ You build one log group, one Firehose stream, and one bucket per student. Fireho
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
 flowchart TB
   subgraph awsBox [AWS]
-    SRC["App traffic / Lambda / agent<br/>(preferred) or probe script"]
+    SRC["Checkout API / Lambda<br/>real requests"]
     LG["Log group"]
     FH["Firehose"]
     S3[("S3")]
@@ -33,9 +33,7 @@ flowchart TB
   style CW fill:#0078D4,stroke:#005A9E,color:#fff
 ```
 
-Build order and Firehose toggles: **`03_CloudWatch_Primer.md`**.
-
-**Log lines:** Prefer **`app_traffic_simulator.sh`** (checkout-API shape — orders, auth, latency). Use **`put_log_events.sh`** only for a quick S3 smoke test. See Lab Step 3.
+Build order: **`03_CloudWatch_Primer.md`**. Produce data: **Lab Step 3 Path A or B**.
 
 ## Envelope shape (mapping target)
 
@@ -50,7 +48,6 @@ flowchart TB
   subgraph event [Each logEvents element]
     TS["timestamp"]
     MSG["message"]
-    ID["id"]
   end
   LE --> event
   MSG -.->|"parse in KQL"| INNER["inner JSON<br/>level / event / orderId"]
@@ -60,12 +57,12 @@ flowchart TB
   style INNER fill:#107C10,stroke:#0B5A0B,color:#fff
 ```
 
-- Filter ingest/query to `messageType == "DATA_MESSAGE"`
-- Mapping binds envelope fields; parse `message` in KQL for app fields (`event`, `level`, `orderId`, …)
-- Leave table `CloudWatchLogs` for Module 04
+- Filter to `messageType == "DATA_MESSAGE"`
+- Parse `message` in KQL for app fields
+- Leave `CloudWatchLogs` for Module 04
 
 ## In class
 
-- Database `ADXTrainingDB_<your-login>`; reader IAM on **your** Firehose bucket
+- Database `ADXTrainingDB_<your-login>`; reader on **your** Firehose bucket
 - Git Bash: `export MSYS_NO_PATHCONV=1` before `aws logs`
-- After Step 1: generate **application-shaped** logs, confirm them in the CloudWatch console, wait for Firehose, then ingest
+- After Step 1: **start API + curl** or **invoke Lambda**, confirm CloudWatch, wait for Firehose, ingest

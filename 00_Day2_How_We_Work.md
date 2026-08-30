@@ -51,7 +51,7 @@ bash assets/ingest_s3_to_adx.sh --module m02 --login <your-login> --region us-ea
 bash assets/ingest_s3_to_adx.sh --module m03 --login <your-login> --max 10 --run
 ```
 
-Use `--run` only if `az login` works on your machine; otherwise open `~/adx-lab-s3/m02/ingest_generated.kql` (or `m03/`) in the ADX Web UI. For Module 03 log traffic, prefer `app_traffic_simulator.sh` (Lab Step 3).
+Use `--run` only if `az login` works on your machine; otherwise open `~/adx-lab-s3/m02/ingest_generated.kql` (or `m03/`) in the ADX Web UI. For Module 03, produce logs by **using** the checkout API or Lambda (Lab Step 3) — not a log-generator script.
 
 ## Two key pairs (same rule as Module 01)
 
@@ -97,7 +97,7 @@ flowchart TB
 1. **Trail wait is normal** — empty S3 for 5–15 minutes after `generate_events.sh` is expected. Build tables and IAM while waiting.
 2. **Reader policy bucket must match the module** — M02 = `adx-classroom-cloudtrail`; M03 = `adx-cw-firehose-<your-login>`; never paste `adx-log-ingestion-*` into the M02/M03 reader.
 3. **Reader policy must keep `s3:GetBucketLocation`** — copy the full `assets/iam/s3-reader-policy.json` and replace both `BUCKET_NAME` strings.
-4. **M03 order** — log group → S3 → Firehose **Active** → subscription filter → **then** generate logs. Prefer `app_traffic_simulator.sh` (real app shape); `put_log_events.sh` is smoke-only. Events before the filter never appear in S3.
+4. **M03 order** — log group → S3 → Firehose **Active** → subscription filter → **then** run the checkout API and `curl` it (or invoke Lambda). `put_log_events.sh` is smoke-only. Events before the filter never appear in S3.
 5. **Git Bash / VS Code** — before any `aws logs` command: `export MSYS_NO_PATHCONV=1`
 6. **Do not delete** the shared trail or `adx-classroom-cloudtrail`. Do not drop `CloudTrailEvents` or `CloudWatchLogs` — later modules need them (your trainer will issue those labs when ready).
 

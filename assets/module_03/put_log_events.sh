@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# Module 03 — quick smoke: three probe lines into your log stream (account id + ARN).
-# For real-project-shaped traffic (orders, auth, latency), prefer:
-#   bash assets/module_03/app_traffic_simulator.sh <region> <your-login>
-#
+# Module 03 — OPTIONAL plumbing smoke only (3 probe lines).
+# Class learning path: run checkout_api/server.py and curl it, or invoke Lambda.
 # Usage: bash assets/module_03/put_log_events.sh <region> <your-login>
 # Git Bash: export MSYS_NO_PATHCONV=1 first. Do not run until the subscription filter exists.
 set -euo pipefail

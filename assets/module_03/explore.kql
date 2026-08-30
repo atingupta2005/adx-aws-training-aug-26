@@ -54,7 +54,7 @@ CloudWatchLogs
 | where isnotempty(parsed)
 | take 10
 
-// App-shaped fields from app_traffic_simulator.sh (or console JSON events)
+// App fields after using checkout API (curl) or Lambda Test invokes
 CloudWatchLogs
 | where messageType == "DATA_MESSAGE"
 | mv-expand e = logEvents

@@ -14,8 +14,8 @@ flowchart TB
     MET["Metrics<br/>CPU, requests, custom"]
     ALM["Alarms<br/>notify when metric crosses threshold"]
   end
-  APP["Real apps / Lambda / agents"]
-  APP -->|"continuous write"| LOGS
+  APP["Apps / Lambda / agents<br/>doing real work"]
+  APP -->|"side effect of work"| LOGS
   MET -.-> ALM
   style cw fill:#FFF4E5,stroke:#FF9900,color:#232F3E
   style LOGS fill:#FF9900,stroke:#232F3E,color:#fff
@@ -24,22 +24,20 @@ flowchart TB
   style APP fill:#3B48CC,stroke:#1B2266,color:#fff
 ```
 
-This module uses **Logs** exported to S3 via **subscription filter + Firehose**, then ADX `.ingest`.
+This module exports **Logs** via **subscription filter + Firehose → S3**, then ADX `.ingest`.
 
 ## Where log lines come from (real projects)
 
-In production, CloudWatch Log groups fill because **work is happening**, not because someone ran a one-off script:
+In production, nobody runs a “generate CloudWatch logs” script. Log groups fill because **services are handling traffic**:
 
-| Source | Typical log group / stream | What you learn in this lab |
-|--------|----------------------------|----------------------------|
-| **Application / microservice** | Custom group, e.g. `/aws/app/checkout` | JSON lines with `level`, `event`, `orderId`, `latencyMs` — same idea as `app_traffic_simulator.sh` |
-| **Lambda** | `/aws/lambda/<function-name>` (automatic) | Every invoke appends streams; filter can point Firehose here |
-| **CloudWatch agent** | Often `/var/log/...` mapped groups | Host syslog, nginx — Module 05–06 style |
-| **Support / ops** | Same app group | Console **Create log event** for a rare debug line |
+| Source | What you do | What CloudWatch sees |
+|--------|-------------|----------------------|
+| **HTTP / microservice** | Start the API; `curl` or browser hits endpoints | JSON lines from the app logger |
+| **AWS Lambda** | Deploy function; **Test** / invoke | Automatic `/aws/lambda/<name>` streams |
+| **CloudWatch agent** | Host runs; agent ships files | `/var/log/...` (Modules 05–06) |
+| **Ops one-off** | Console **Create log event** | Rare debug / incident marker |
 
-**Class tip:** Build the export pipeline once, then **prefer realistic application-shaped traffic** so ADX queries feel like an ops dashboard. Use `put_log_events.sh` only to smoke-test that S3 received *something*.
-
-Detail and commands for generating traffic: **Lab Step 3** (Paths A–C).
+**Class tip:** Build the Firehose pipeline once, then **use a service** (Lab Step 3 Path A or B). A smoke script is only for plumbing checks.
 
 ## Logs vocabulary
 
@@ -68,21 +66,17 @@ flowchart LR
   style S3 fill:#232F3E,stroke:#FF9900,color:#fff
 ```
 
-**Critical order:** create subscription filter **before** sending log events you need in S3. Old events are not shipped retroactively.
+**Critical order:** create subscription filter **before** the traffic you need in S3. Old events are not shipped retroactively.
 
 ## Hands-on (console)
 
-After your lab resources exist (or follow along on trainer demo):
-
-1. **CloudWatch** → **Log groups** → open `/adx-training/app-logs-<login>`.
-2. Open a **log stream** → see event **message** and **timestamp** (look for `order.created`, `auth.login.failed`, etc. after the app simulator).
-3. **Subscription filters** tab → confirm filter points to your Firehose.
-4. **Kinesis** → **Data Firehose** → open stream → verify **Active** and **Decompress CloudWatch Logs** enabled.
-5. **S3** → your `adx-cw-firehose-<login>` bucket → find a recent object.
+1. **CloudWatch** → **Log groups** → open your group (app group or `/aws/lambda/...`).
+2. Open a **log stream** → confirm lines from **API/Lambda use**, not only a smoke script.
+3. **Subscription filters** → Firehose destination.
+4. **Firehose** → **Active** + **Decompress CloudWatch Logs** on.
+5. **S3** → `adx-cw-firehose-<login>` → recent object.
 
 ### Optional: CloudWatch Logs Insights
-
-In the log group → **Logs Insights**:
 
 ```sql
 fields @timestamp, @message
@@ -91,21 +85,17 @@ fields @timestamp, @message
 | limit 20
 ```
 
-Run query. Same lines will eventually appear in S3/Firehose (after buffer flush).
-
-**Checkpoint:** You can draw log group → stream → event without looking at notes — and explain **who** wrote the line (app vs probe script).
+**Checkpoint:** You can explain who wrote the line (checkout API request vs Lambda invoke).
 
 ## Firehose settings (lab)
 
 | Setting | Lab value | Why |
 |---------|-----------|-----|
-| Decompress CloudWatch Logs | **On** | ADX needs readable JSON envelope |
+| Decompress CloudWatch Logs | **On** | Readable JSON envelope |
 | S3 compression | **UNCOMPRESSED** | Simpler first ingest |
 | Buffer | ~1 MiB / 60 s | Wait after traffic before listing S3 |
 
 ## Git Bash trap
-
-Log group names start with `/`. Git Bash rewrites paths unless you run:
 
 ```bash
 export MSYS_NO_PATHCONV=1
@@ -115,8 +105,8 @@ export MSYS_NO_PATHCONV=1
 
 | Mistake | Result |
 |---------|--------|
-| Put events before subscription filter | Empty S3 — send traffic again after filter exists |
-| Only run the 3-line probe script | Pipeline works, but ADX practice feels “fake” — also run the app simulator |
-| Decompress off | Objects in S3 but ADX mapping sees garbage |
-| Wrong reader bucket | Ingest fails — reader must match Firehose bucket |
-| Skip `MSYS_NO_PATHCONV` | `aws logs` targets wrong path on Windows |
+| Traffic before subscription filter | Empty S3 — use the API/Lambda again after the filter exists |
+| Only run a smoke `put_log_events` script | Plumbing works; you missed the real-service learning goal |
+| Decompress off | S3 objects ADX cannot map cleanly |
+| Wrong reader bucket | Ingest fails |
+| Skip `MSYS_NO_PATHCONV` | Wrong log group path on Windows |
