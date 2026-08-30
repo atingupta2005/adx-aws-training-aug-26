@@ -77,7 +77,7 @@ CloudTrail is **always on** for the classroom trail. Anything you do in the cons
 2. Wait **5–15 minutes** for a new `.json.gz` under `AWSLogs/<your-account-id>/CloudTrail/us-east-1/`.
 3. In ADX after expand: `CloudTrailEvents | where UserArn contains "<your-login>"`.
 
-Why we still ship `generate_events.sh`: it creates **distinct** create/delete events so beginners can confirm expand worked, while tables and IAM are being built. Details: **`assets/REAL_VS_LAB_DATA.md`**.
+Why we still ship `generate_events.sh`: it creates **distinct** create/delete events so beginners can confirm expand worked, while tables and IAM are being built. You can instead use normal console/CLI activity and wait 5–15 minutes for trail delivery.
 
 ## Sample event fields
 

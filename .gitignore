@@ -5,11 +5,10 @@
 #
 # Safe to commit (Day 1–2 student package):
 #   README.md, 00_*.md, Module_01–03/, assets/iam/, assets/module_01–03,
-#   assets/common/, assets/ingest_s3_to_adx.sh, assets/REAL_VS_LAB_DATA.md,
-#   scripts/verify_student_push.sh
+#   assets/common/, assets/ingest_s3_to_adx.sh, scripts/verify_student_push.sh
 #
 # Keep local only until issued: Module_04–08, Instructor_Materials/,
-# _private_validation/, *_Instructor.md
+# _private_validation/, *_Instructor.md, assets/REAL_VS_LAB_DATA.md (trainer)
 # =============================================================================
 
 # --- Later modules — local trainer copy only; do not commit ---
@@ -32,6 +31,8 @@ Instructor_Materials/
 **/*_Student.md
 _private_validation/
 **/_private_validation/
+assets/REAL_VS_LAB_DATA.md
+**/REAL_VS_LAB_DATA.md
 
 # --- Authoring aids (not participant courseware) ---
 master-prompt.md

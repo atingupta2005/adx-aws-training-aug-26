@@ -39,7 +39,7 @@ In production, CloudWatch Log groups fill because **work is happening**, not bec
 
 **Class tip:** Build the export pipeline once, then **prefer realistic application-shaped traffic** so ADX queries feel like an ops dashboard. Use `put_log_events.sh` only to smoke-test that S3 received *something*.
 
-Detail and commands: **`assets/REAL_VS_LAB_DATA.md`** (Module 03 section).
+Detail and commands for generating traffic: **Lab Step 3** (Paths A–C).
 
 ## Logs vocabulary
 

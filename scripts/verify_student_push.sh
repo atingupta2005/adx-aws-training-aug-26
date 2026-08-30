@@ -18,19 +18,20 @@ BLOCKED=(
   'assets/module_06/'
   'assets/module_07/'
   'assets/module_08/'
+  'assets/REAL_VS_LAB_DATA.md'
 )
 
 FAIL=0
-STAGED=$(git diff --cached --name-only 2>/dev/null || true)
+STAGED=$(git diff --cached --diff-filter=ACMR --name-only 2>/dev/null || true)
 
 if [ -z "$STAGED" ]; then
-  echo "No staged files. Checking tracked tree for blocked paths..."
+  echo "No staged add/modify files. Checking tracked tree for blocked paths..."
   STAGED=$(git ls-files)
 fi
 
 for path in $STAGED; do
   for b in "${BLOCKED[@]}"; do
-    if [[ "$path" == "$b"* ]] || [[ "$path" == *"/${b}"* ]]; then
+    if [[ "$path" == "$b"* ]] || [[ "$path" == *"/${b}"* ]] || [[ "$path" == "$b" ]]; then
       echo "BLOCKED: $path (matches $b)"
       FAIL=1
     fi
@@ -43,8 +44,8 @@ for path in $STAGED; do
   esac
 done
 
-# Heuristic: long-lived AWS key in diff
-if git diff --cached -U0 2>/dev/null | grep -qE 'AKIA[0-9A-Z]{16}'; then
+# Heuristic: long-lived AWS key in staged add/modify diff only
+if git diff --cached --diff-filter=ACMR -U0 2>/dev/null | grep -qE 'AKIA[0-9A-Z]{16}'; then
   echo "BLOCKED: staged diff may contain AWS access key IDs — review before push"
   FAIL=1
 fi

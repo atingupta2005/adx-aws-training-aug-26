@@ -60,7 +60,7 @@ After expand, query: `eventTime`, `eventName`, `eventSource`, `awsRegion`, `user
 
 ## Real activity vs lab script
 
-CloudTrail records **every** API call in your account continuously. Delivery to S3 is **not** instant (typically **5–15 minutes**). The lab script `generate_events.sh` only **schedules recognizable API calls** — it is not fake JSON. For console-only real activity and bulk ingest without manual keys, see **`assets/REAL_VS_LAB_DATA.md`** and Step 5 in the lab (`ingest_s3_prefix.sh`).
+CloudTrail records **every** API call in your account continuously. Delivery to S3 is **not** instant (typically **5–15 minutes**). The lab script `generate_events.sh` only **schedules recognizable API calls** — it is not fake JSON. For console-only real activity, use S3/IAM/EC2 normally and wait for delivery; for bulk ingest without manual keys, see Step 5 in the lab (`ingest_s3_to_adx.sh`).
 
 ## In class
 

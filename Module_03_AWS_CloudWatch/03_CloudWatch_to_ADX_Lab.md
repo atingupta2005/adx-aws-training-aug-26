@@ -2,7 +2,7 @@
 
 Build log group → Firehose → S3 in the console, create the ADX table, **send real-shaped application logs**, wait for an object, ingest the envelope.
 
-Scripts and KQL: `assets/module_03/`. Real vs probe data: `assets/REAL_VS_LAB_DATA.md`.
+Scripts and KQL: `assets/module_03/`. Prefer **`app_traffic_simulator.sh`** for application-shaped logs; use **`put_log_events.sh`** only as a quick S3 smoke test.
 
 **Names** (use your login from the access card: `u01` … `u06`. Do not invent initials.)
 
@@ -181,7 +181,16 @@ Do **not** stop here for the full learning goal — also run Path A (or console 
 
 1. Log group → stream → **Create log event** → paste e.g.  
    `{"level":"ERROR","service":"checkout-api","event":"payment.declined","orderId":"ord-manual-1"}`
-2. Or see CLI one-liners in `assets/REAL_VS_LAB_DATA.md` (Module 03).
+2. Or CLI (Git Bash: `export MSYS_NO_PATHCONV=1` first):
+
+```bash
+aws logs put-log-events \
+  --log-group-name "/adx-training/app-logs-<your-login>" \
+  --log-stream-name "Instance_01_<your-login>" \
+  --log-events '[{"timestamp":'$(($(date +%s)*1000))',"message":"{\"level\":\"INFO\",\"service\":\"checkout-api\",\"event\":\"order.created\",\"orderId\":\"ord-manual-1\"}"}]'
+```
+
+(If the stream already has events, add `--sequence-token` from `aws logs describe-log-streams` — Path A’s simulator does this for you.)
 
 ### Confirm S3
 

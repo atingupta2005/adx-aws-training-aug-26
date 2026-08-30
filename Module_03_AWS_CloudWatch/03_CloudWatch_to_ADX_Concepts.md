@@ -35,7 +35,7 @@ flowchart TB
 
 Build order and Firehose toggles: **`03_CloudWatch_Primer.md`**.
 
-**Real vs scripted log lines:** **`assets/REAL_VS_LAB_DATA.md`** — prefer **`app_traffic_simulator.sh`** (checkout-API shape); use **`put_log_events.sh`** only for a quick S3 smoke test.
+**Log lines:** Prefer **`app_traffic_simulator.sh`** (checkout-API shape — orders, auth, latency). Use **`put_log_events.sh`** only for a quick S3 smoke test. See Lab Step 3.
 
 ## Envelope shape (mapping target)
 

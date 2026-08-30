@@ -51,7 +51,7 @@ bash assets/ingest_s3_to_adx.sh --module m02 --login <your-login> --region us-ea
 bash assets/ingest_s3_to_adx.sh --module m03 --login <your-login> --max 10 --run
 ```
 
-Use `--run` only if `az login` works on your machine; otherwise open `~/adx-lab-s3/m02/ingest_generated.kql` (or `m03/`) in the ADX Web UI. Real vs scripted data: `assets/REAL_VS_LAB_DATA.md`.
+Use `--run` only if `az login` works on your machine; otherwise open `~/adx-lab-s3/m02/ingest_generated.kql` (or `m03/`) in the ADX Web UI. For Module 03 log traffic, prefer `app_traffic_simulator.sh` (Lab Step 3).
 
 ## Two key pairs (same rule as Module 01)
 

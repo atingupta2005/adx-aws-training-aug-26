@@ -2,7 +2,9 @@
 
 Generate a few API calls, wait for a `.json.gz` in the **shared** trail bucket, create tables and a reader, ingest the wrapper, expand `Records`, keep `CloudTrailEvents` for Module 04.
 
-Scripts and KQL: `assets/module_02/`. **Real vs scripted data:** `assets/REAL_VS_LAB_DATA.md`.
+Scripts and KQL: `assets/module_02/`.
+
+Prefer real activity? Skip the script and use the console or CLI normally (`aws s3 ls`, create a test bucket, etc.). You still wait for S3 delivery — that delay is normal in production too.
 
 **Names** (use your login from the access card: `u01` … `u06`. Do not invent initials.)
 
@@ -53,7 +55,7 @@ The script (using your card keys via `aws configure`):
 
 All actions are logged to the **shared** CloudTrail trail. A new object can take **5–15 minutes**. Start Step 2 while you wait.
 
-**Prefer real activity instead?** Skip the script and use the console or CLI normally (`aws s3 ls`, create a test bucket, etc.). See `assets/REAL_VS_LAB_DATA.md`. You still wait for S3 delivery — that delay is normal in production too.
+**Prefer real activity instead?** Skip the script and use the console or CLI normally (`aws s3 ls`, create a test bucket, etc.). You still wait for S3 delivery — that delay is normal in production too.
 
 **Checkpoint:** Script finishes without `AccessDenied`. You do **not** need an S3 object yet.
 

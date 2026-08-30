@@ -6,7 +6,7 @@ ADX runs KQL. S3 holds files. ADX pulls objects over HTTPS with IAM keys on the 
 
 Wrong mapping? Fix it and re-ingest the **same** S3 key.
 
-**Module 01 capture uses live AWS API responses** — see `assets/REAL_VS_LAB_DATA.md`.
+**Module 01 capture uses live AWS API responses** (`sts`, `s3`, `ec2`) — not a canned sample file.
 
 S3 basics and console tour: **`01_S3_Primer.md`**.
 
