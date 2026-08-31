@@ -13,7 +13,6 @@
 
 # --- Later modules — local trainer copy only; do not commit ---
 # Each blocked folder may have its own .gitignore (* + !.gitignore).
-Module_04_Hybrid_Architecture/
 Module_05_Logstash/
 Module_06_Filebeat/
 Module_07_Metricbeat/
