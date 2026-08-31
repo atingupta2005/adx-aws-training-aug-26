@@ -2,9 +2,13 @@
 
 Read this **before** `03_CloudWatch_to_ADX_Concepts.md`.
 
-## CloudWatch family
+## What CloudWatch is (in one sentence)
 
-**Amazon CloudWatch** is AWS observability. Three main pieces:
+**Amazon CloudWatch** is the built-in AWS observability service. Every AWS compute resource — Lambda functions, EC2 instances, ECS containers, API Gateways — sends its logs and metrics to CloudWatch automatically (or with minimal configuration). You do not install a log agent or manage log files on a host to get started; the runtime does it for you.
+
+This module uses the **Logs** side of CloudWatch. You will read about Metrics and Alarms because they appear in the console, but you will not configure them in this lab.
+
+## CloudWatch family — three main pieces
 
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
@@ -41,14 +45,16 @@ In production, nobody runs a “generate CloudWatch logs” script. Log groups f
 
 ## Logs vocabulary
 
-| Term | Meaning |
-|------|---------|
-| **Log group** | Container, name starts with `/`, example `/adx-training/app-logs-u01` |
-| **Log stream** | Sequence of events within a group, often one instance |
-| **Log event** | One line: timestamp + message |
-| **Retention** | How long CloudWatch keeps logs (lab: 1 day) |
-| **Subscription filter** | Forward matching log events to a destination |
-| **Firehose** | Managed delivery stream to S3 (and other targets) |
+The AWS console and the CLI use these terms constantly. Learn them now so step instructions make sense at a glance.
+
+| Term | Plain meaning |
+|------|---------------|
+| **Log group** | A named container for related log streams. Name starts with `/`, example `/adx-training/app-logs-u01`. You create one per application or service. |
+| **Log stream** | A sequence of events within a log group — typically one per host instance or Lambda function. Example: `Instance_01_u01`. |
+| **Log event** | One line in a stream: a Unix timestamp plus a message string. The message is usually JSON in modern applications. |
+| **Retention** | How long CloudWatch keeps log events before deleting them automatically. Lab default: 1 day (saves cost). |
+| **Subscription filter** | A rule attached to a log group that forwards matching new events to an external destination (Firehose, Lambda, or another account). The tap — events before the filter existed are not sent retroactively. |
+| **Firehose** | Amazon Data Firehose — a managed delivery stream that accepts events from CloudWatch subscriptions and writes batched objects to S3 (or other targets). Handles buffering, retries, and decompression. |
 
 ## Log group → S3 path (overview)
 
