@@ -1,194 +1,349 @@
-# Module 04 — Lab
+# Module 04 — Lab (Hybrid logs in ADX)
 
-This lab builds a **hybrid** view in ADX: AWS logs and on-premises-style logs side by side in one table you can query.
+**Reading order:** `04_Hybrid_Primer.md` → `04_Hybrid_Log_Ingestion_Concepts.md` → **this Lab** → `04_Exercises.md`.
 
-**Reading first (important):**  
-`04_Hybrid_Primer.md` → `04_Hybrid_Log_Ingestion_Concepts.md` → this Lab.
+**Database:** `ADXTrainingDB_<your-login>` (example: `ADXTrainingDB_u01`).
 
-KQL files live in `assets/module_04/`.
-
-**Database name:** `ADXTrainingDB_<your-login>`  
-Example: if your login is `u01`, use `ADXTrainingDB_u01`.
+**KQL files:** `assets/module_04/`.
 
 ---
 
-## What you will build (big picture)
+## 1. What this lab is about (plain English)
+
+You already have AWS log data in ADX from earlier modules:
+
+| Earlier module | ADX table you should already have | What that table contains |
+|----------------|-----------------------------------|---------------------------|
+| Module 02 | `CloudTrailEvents` | One row per AWS API call (after expand) |
+| Module 03 | `CloudWatchLogs` | CloudWatch log events from a real API/Lambda |
+
+Those two tables do **not** look the same. A company also has **on-premises** logs (servers, firewalls) that look different again.
+
+This lab builds a **hybrid** analytics table named `UnifiedHybridLogs` so you can ask one question across environments, for example:
+
+> Show ERROR / CRITICAL events from AWS and on-prem on one timeline.
+
+You do **not** build a site-to-site VPN or ExpressRoute in this module. Hybrid unification happens **inside ADX**.
+
+**On-prem / host path (coming next in the course):** you will use a **cloud isolated lab VM**. On that VM you install **Filebeat**, **Metricbeat**, and **Logstash**. Beats capture host/web/metrics data; Logstash processes it and ingests into ADX. Module 04 prepares the unified ADX shape first; Modules 05–07 bring that real host pipeline online.
+
+---
+
+## 2. How data travels (source → destination)
+
+Read this section fully before you run any KQL. Module 04 has **two paths** into the same destination table.
+
+### 2.1 Picture of the full journey
 
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
 flowchart TB
-  A["Step 1<br/>Create tables, functions, update policy"] --> B["Step 2<br/>Load real AWS rows into RawAWSLogs"]
-  B --> C["Step 3<br/>Load 2 on-prem demo rows into RawOnPremLogs"]
-  C --> D["Step 4<br/>Query UnifiedHybridLogs by Environment"]
-  style A fill:#0078D4,stroke:#005A9E,color:#fff
-  style B fill:#FF9900,stroke:#232F3E,color:#fff
-  style C fill:#5C2D91,stroke:#3A1D5C,color:#fff
-  style D fill:#107C10,stroke:#0B5A0B,color:#fff
+  subgraph gen [A. Generate or refresh source data BEFORE this lab]
+    A1["Module 02 activity<br/>generate_events.sh / console API calls"]
+    A2["Module 03 activity<br/>checkout API + curl OR Lambda Test"]
+  end
+  subgraph awsStore [B. AWS stores files]
+    B1["CloudTrail → shared S3<br/>adx-classroom-cloudtrail"]
+    B2["CloudWatch → Firehose → S3<br/>adx-cw-firehose-LOGIN"]
+  end
+  subgraph already [C. Already in YOUR ADX database from M02/M03]
+    C1[("CloudTrailEvents")]
+    C2[("CloudWatchLogs")]
+  end
+  subgraph hybrid [D. This Module 04 lab]
+    D0["Step 1: setup.kql<br/>tables + functions + update policy"]
+    D1[("RawAWSLogs")]
+    D2[("RawOnPremLogs")]
+    D3[("UnifiedHybridLogs<br/>5 shared columns")]
+    D4["Step 3 today:<br/>short load_onprem.kql<br/>so Unified gets On-Premises now"]
+    FUT["Later Modules 05–07<br/>Isolated cloud VM<br/>Filebeat / Metricbeat → Logstash → ADX"]
+  end
+  A1 --> B1 -->|".ingest in Module 02"| C1
+  A2 --> B2 -->|".ingest in Module 03"| C2
+  C1 --> D0
+  C2 --> D0
+  D0 -->|"Step 2 load_from_cloudtrail<br/>or load_from_cloudwatch"| D1
+  D4 -->|"Step 3"| D2
+  FUT -.->|"same hybrid idea<br/>real host data"| D2
+  D1 -->|"update policy<br/>NormalizeAWSLogs()"| D3
+  D2 -->|"update policy<br/>NormalizeOnPremLogs()"| D3
+  style gen fill:#FFF4E5,stroke:#FF9900,color:#232F3E
+  style awsStore fill:#FFF4E5,stroke:#FF9900,color:#232F3E
+  style already fill:#E6F2FB,stroke:#0078D4,color:#003A5D
+  style hybrid fill:#E8F5E9,stroke:#107C10,color:#0B5A0B
+  style D3 fill:#107C10,stroke:#0B5A0B,color:#fff
+  style FUT fill:#7FBA00,stroke:#3A6B00,color:#fff
 ```
 
-After Step 1, ADX is ready but almost empty of hybrid data.  
-After Steps 2–3, new rows into the **raw** tables are **automatically copied** (in simplified form) into `UnifiedHybridLogs`. That automatic copy is the **update policy**.
+### 2.2 AWS path — what already happened in Modules 02 / 03
+
+Module 04 does **not** pull new files from S3 by itself for the AWS side. It **reuses tables you already filled**.
+
+**CloudTrail path (Module 02):**
+
+1. You ran API activity (`assets/module_02/generate_events.sh` or console/CLI work).
+2. Shared trail `adx-classroom-trail` wrote a `.json.gz` into `adx-classroom-cloudtrail`.
+3. You `.ingest`ed that object into ADX and expanded into `CloudTrailEvents`.
+
+**CloudWatch path (Module 03):**
+
+1. You built log group → Firehose → S3.
+2. You **used** the checkout API (`curl`) or invoked Lambda (not a fake log-only script as the main path).
+3. Firehose wrote an object to `adx-cw-firehose-<login>`.
+4. You `.ingest`ed into `CloudWatchLogs`.
+
+**Module 04 AWS step:** copy from `CloudTrailEvents` or `CloudWatchLogs` → `RawAWSLogs` → (automatic) → `UnifiedHybridLogs` with `Environment = "AWS"`.
+
+### 2.3 On-premises / host path — today vs next modules
+
+**Today in Module 04 (so Unified can show two environments immediately):**
+
+1. Run `load_onprem.kql`.
+2. It inserts a short set of on-premises-shaped rows into `RawOnPremLogs`.
+3. The update policy copies simplified rows into `UnifiedHybridLogs` with `Environment = "On-Premises"`.
+
+That lets you finish the hybrid pattern in ADX now (raw tables + policy + unified query).
+
+**Next in the course (real host data through Logstash):**
+
+You will work on a **cloud isolated VM** (shared lab host). On that VM:
+
+1. **Filebeat** / **Metricbeat** capture logs and metrics from the host (auth logs, web access, CPU/memory, and so on).
+2. **Logstash** receives those events, parses/enriches them, and **ingests into ADX** (your `ADXTrainingDB_<login>` tables such as `LogstashHostLogs`, `WebServerLogs`, `SystemMetrics`).
+3. Those ADX tables are the real host-side feed. You can then project them into the same hybrid / unified idea you build in this module.
+
+So: Module 04 teaches **unify-in-ADX**. Modules 05–07 teach **how real host data arrives** (Beats → Logstash → ADX) from the isolated cloud VM.
+
+### 2.4 What “update policy” means on this path
+
+After Step 1 succeeds:
+
+- Every **new** insert into `RawAWSLogs` runs `NormalizeAWSLogs()` and appends into `UnifiedHybridLogs`.
+- Every **new** insert into `RawOnPremLogs` runs `NormalizeOnPremLogs()` and appends into `UnifiedHybridLogs`.
+
+You usually do **not** insert into `UnifiedHybridLogs` by hand.
+
+**Critical:** Create the policy **before** you load raw data. Policies do not rewrite old rows.
 
 ---
 
-## Rule for this lab
+## 3. Rule for this lab
 
-| Side | What you must use | What you must not do |
-|------|-------------------|----------------------|
-| AWS | Real rows already in `CloudTrailEvents` (Module 02) and/or `CloudWatchLogs` (Module 03) | Invent AWS rows with a fake generator script |
-| On-prem | The small demo insert in `load_onprem.kql` (two sample rows) | Expect a real VPN / live DC feed in this module |
-
-**If CloudWatch is thin before Step 2:** use the Module 03 checkout API or Lambda again, wait for Firehose, re-ingest (`ingest_s3_to_adx.sh --module m03`). Or do normal console/CLI work and re-ingest CloudTrail (`--module m02`).
+| Side | What you use in Module 04 | Notes |
+|------|---------------------------|-------|
+| AWS | Real `CloudTrailEvents` and/or `CloudWatchLogs` from Modules 02/03 | Do not invent AWS rows with a generator script inside Module 04 |
+| On-prem / host | `load_onprem.kql` today so Unified shows `On-Premises` now | Real host capture comes next: isolated cloud VM → Filebeat / Metricbeat → Logstash → ADX (Modules 05–07) |
 
 ---
 
-## Before you click anything
+## 4. Before Step 1 — make sure source data exists (and how to generate it)
 
-1. Open Azure portal → Pay-As-You-Go → resource group `rg-adx-training-aug26` → cluster `adxtrainaug26` → **Query**.
-2. In the database dropdown, select **`ADXTrainingDB_<your-login>`**.
-3. Run this check first:
+### 4.1 Open the correct database
+
+1. Azure portal → subscription **Pay-As-You-Go** → resource group `rg-adx-training-aug26` → cluster `adxtrainaug26` → **Query**.
+2. Database dropdown → `ADXTrainingDB_<your-login>`.
+3. Run:
 
 ```kusto
 print Database = current_database()
 ```
 
-The result must be exactly your database name. If it is a classmate’s database, **stop** and change the dropdown.
+It must match your login database. If not, stop and fix the dropdown.
 
----
-
-## Step 1 — Tables, functions, and policy
-
-### Goal (plain English)
-
-Prepare ADX so that:
-
-1. There is a **shared analytics table** (`UnifiedHybridLogs`) with five columns everyone can query.
-2. There are two **raw tables** that keep source-shaped data (`RawAWSLogs`, `RawOnPremLogs`).
-3. There are two **normalize functions** that map raw columns → the five shared columns.
-4. There is an **update policy** that says: “when a new row is inserted into a raw table, run the matching function and append into `UnifiedHybridLogs`.”
-
-Until this step is done **in this order**, later loads will not fill Unified correctly.
-
-### Why this step exists
-
-Without Step 1:
-
-- You have nowhere clean to put hybrid results.
-- Even if you copy AWS rows somewhere, nothing automatically creates the shared five-column view.
-- If you load data **before** the update policy exists, those rows will **not** appear in `UnifiedHybridLogs` later (policies do not rewrite history).
-
-### What each piece in `setup.kql` means
-
-Open `assets/module_04/setup.kql` in VS Code and keep it next to this page.
-
-| Part of `setup.kql` | What it creates | Why you need it |
-|---------------------|-----------------|-----------------|
-| `.show tables` filter | Check only | Confirms Module 02/03 source tables exist before you continue |
-| `.create table UnifiedHybridLogs (...)` | Shared table with `LogTime`, `Environment`, `SourceService`, `LogLevel`, `Message` | This is what you query for one timeline across environments |
-| `.create table RawAWSLogs (...)` | AWS-shaped raw table (`Timestamp`, `Service`, `Level`, `Details`) | Holding area for AWS rows before/while they are normalized |
-| `.create table RawOnPremLogs (...)` | On-prem-shaped raw table (`EventTime`, `Node`, `Severity`, `LogData`) | Holding area for on-prem-style rows |
-| `.create function NormalizeAWSLogs()` | KQL function | Renames/maps AWS raw columns into the five unified columns and sets `Environment = "AWS"` |
-| `.create function NormalizeOnPremLogs()` | KQL function | Maps on-prem raw columns into the same five columns and sets `Environment = "On-Premises"` |
-| `.alter table UnifiedHybridLogs policy update ...` | Update policy | Wires raw inserts → normalize functions → Unified append |
-| Final `.show table ... policy update` | Check only | Proves the policy is attached and enabled |
-
-**About the normalize functions:**  
-“Normalize” here does **not** mean “clean dirty data.” It means “make different source shapes look the same for analytics.” Example: AWS uses `Timestamp` / `Details`; on-prem uses `EventTime` / `LogData`; Unified always wants `LogTime` / `Message`.
-
-**About the update policy JSON:**  
-It lists two sources (`RawAWSLogs` and `RawOnPremLogs`), each with a query (`NormalizeAWSLogs()` / `NormalizeOnPremLogs()`), `IsEnabled=True`, and `IsTransactional=true` (if normalize fails, the raw insert can roll back too).
-
-### Do this exactly
-
-1. Confirm database with `print Database = current_database()` (above).
-2. In the ADX Query pane, paste **only** the first two lines from `setup.kql` (the `.show tables` check) and run:
-
-```kusto
-.show tables
-| where TableName in ("CloudTrailEvents", "CloudWatchLogs")
-```
-
-3. Confirm at least one of those tables exists. Then check counts:
+### 4.2 Check whether you already have AWS rows
 
 ```kusto
 CloudTrailEvents | count
 CloudWatchLogs | count
 ```
 
-At least one count must be **greater than 0**.  
-If both are 0: stop this lab. Finish Module 02 or 03 with **real** activity, ingest again, then return.
+**Pass for Module 04:** at least one count is **greater than 0**.
 
-4. Paste and run the **rest** of `setup.kql` (all `.create table`, `.create function`, `.alter ... policy update`, and the final `.show ... policy update`).
+### 4.3 If both counts are 0 — generate data first (do not skip)
 
-**If a `.create table` says it already exists** (from an earlier attempt): that is OK for a first retry. If results look wrong later, ask the trainer before dropping tables. Do not invent a new database name.
+Module 04 cannot invent AWS history. Go back and produce real activity, then return.
 
-### Checkpoint — what “good” looks like
+#### Option A — Refresh CloudTrail (Module 02 path)
 
-Run:
+1. In VS Code bash (card keys configured):
+
+```bash
+cd ~/adx-aws-training
+export MSYS_NO_PATHCONV=1
+bash assets/module_02/generate_events.sh us-east-1 <your-login>
+```
+
+2. Wait **5–15 minutes** for a new object under `s3://adx-classroom-cloudtrail/...`.
+3. Ingest and expand again using Module 02 lab / `assets/ingest_s3_to_adx.sh --module m02 --login <your-login> ...`.
+4. Re-check `CloudTrailEvents | count`.
+
+#### Option B — Refresh CloudWatch (Module 03 path) — preferred if M03 is fresh
+
+1. Confirm Module 03 subscription filter already exists (do not send traffic before the filter).
+2. Start the checkout API and call it (real service use):
+
+```bash
+cd ~/adx-aws-training
+export MSYS_NO_PATHCONV=1
+export ADX_LOGIN=<your-login>
+export AWS_DEFAULT_REGION=us-east-1
+python3 assets/module_03/checkout_api/server.py
+```
+
+In another terminal:
+
+```bash
+curl -s http://127.0.0.1:8080/health
+curl -s -X POST http://127.0.0.1:8080/v1/orders -H "Content-Type: application/json" -d '{"sku":"WIDGET","qty":2}'
+curl -s -X POST http://127.0.0.1:8080/v1/login -H "Content-Type: application/json" -d '{"user":"alice","password":"wrong"}'
+curl -s -X POST http://127.0.0.1:8080/v1/login -H "Content-Type: application/json" -d '{"user":"alice","password":"secret"}'
+```
+
+3. Confirm events in CloudWatch log group `/adx-training/app-logs-<your-login>`.
+4. Wait **60–90 seconds**, list `s3://adx-cw-firehose-<your-login>/`, ingest with Module 03 method / `ingest_s3_to_adx.sh --module m03`.
+5. Re-check `CloudWatchLogs | count`.
+
+#### Option C — Lambda instead of checkout API
+
+Follow Module 03 Lab Path B: function `checkout-api-<your-login>`, subscription on `/aws/lambda/checkout-api-<your-login>`, **Test** invoke several times **after** the filter exists, then wait / ingest.
+
+### 4.4 If CloudWatch exists but is “thin” (recommended refresh)
+
+If `CloudWatchLogs` has only a few rows, run Option B again so the hybrid AWS side looks meaningful, then continue.
+
+---
+
+## 5. Lab steps overview
+
+```mermaid
+%%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
+flowchart TB
+  A["Step 1 — setup.kql<br/>tables + functions + policy"] --> B["Step 2 — Load AWS into RawAWSLogs"]
+  B --> C["Step 3 — Load on-prem demo into RawOnPremLogs"]
+  C --> D["Step 4 — Query UnifiedHybridLogs"]
+  style A fill:#0078D4,stroke:#005A9E,color:#fff
+  style B fill:#FF9900,stroke:#232F3E,color:#fff
+  style C fill:#5C2D91,stroke:#3A1D5C,color:#fff
+  style D fill:#107C10,stroke:#0B5A0B,color:#fff
+```
+
+---
+
+## Step 1 — Tables, functions, and update policy
+
+### Goal
+
+Prepare ADX so raw inserts can automatically become shared hybrid rows.
+
+### Why this step comes first
+
+If you load raw data **before** the update policy exists, `UnifiedHybridLogs` stays empty for that batch. Policies do not go back in time.
+
+### What `setup.kql` creates (concept)
+
+| Piece | Name | Plain meaning |
+|-------|------|----------------|
+| Shared table | `UnifiedHybridLogs` | Five columns for one timeline: `LogTime`, `Environment`, `SourceService`, `LogLevel`, `Message` |
+| Raw table | `RawAWSLogs` | AWS-shaped holding table (`Timestamp`, `Service`, `Level`, `Details`) |
+| Raw table | `RawOnPremLogs` | On-prem-shaped holding table (`EventTime`, `Node`, `Severity`, `LogData`) |
+| Function | `NormalizeAWSLogs()` | Maps AWS raw columns → five shared columns; sets `Environment="AWS"` |
+| Function | `NormalizeOnPremLogs()` | Maps on-prem raw columns → same five columns; sets `Environment="On-Premises"` |
+| Update policy | on `UnifiedHybridLogs` | “On new raw insert, run the matching function and append into Unified” |
+
+“**Normalize**” here means “make different shapes look the same for analytics,” not “ magically clean bad data.”
+
+### Do this exactly
+
+1. Confirm database (`print Database = current_database()`).
+2. Open `assets/module_04/setup.kql`.
+3. Run the source check at the top:
+
+```kusto
+.show tables
+| where TableName in ("CloudTrailEvents", "CloudWatchLogs")
+```
+
+4. Run counts again (must have data — Section 4):
+
+```kusto
+CloudTrailEvents | count
+CloudWatchLogs | count
+```
+
+5. Run the **rest** of `setup.kql` (all `.create table`, `.create function`, `.alter ... policy update`, and the final `.show ... policy update`).
+
+### Checkpoint
 
 ```kusto
 .show table UnifiedHybridLogs policy update
 ```
 
-You should see policy entries for **both**:
+You must see **both** sources enabled:
 
-- Source `RawAWSLogs` → query `NormalizeAWSLogs()` → enabled  
-- Source `RawOnPremLogs` → query `NormalizeOnPremLogs()` → enabled  
+- `RawAWSLogs` → `NormalizeAWSLogs()`
+- `RawOnPremLogs` → `NormalizeOnPremLogs()`
 
-Also useful:
+Also:
 
 ```kusto
 .show tables
 | where TableName in ("UnifiedHybridLogs", "RawAWSLogs", "RawOnPremLogs")
 ```
 
-All three table names should appear.
-
 ### If something is wrong
 
-| What you see | What it means | What to do |
-|--------------|---------------|------------|
-| Both source counts are 0 | No Module 02/03 data | Go back to M02/M03; do not continue |
-| Policy show is empty | `.alter ... policy update` did not run or failed | Re-run the policy section of `setup.kql`; read the error text |
-| Only one source in the policy | Partial paste | Run the full `.alter table UnifiedHybridLogs policy update` block again |
-| Wrong database name | Dropdown error | Change DB; re-check with `print Database` |
+| Symptom | Fix |
+|---------|-----|
+| Both M02/M03 counts are 0 | Section 4 — generate/ingest first |
+| Policy show empty | Re-run the `.alter table UnifiedHybridLogs policy update` part from `setup.kql` |
+| Table already exists | Earlier attempt — ask trainer before dropping; or continue if policy looks correct |
+| Wrong database | Fix dropdown; never continue in a classmate DB |
 
-**Do not load AWS/on-prem data yet.** Policy must exist first.
+**Do not load data yet.**
 
 ---
 
 ## Step 2 — Load AWS rows into `RawAWSLogs`
 
-### Goal (plain English)
+### Goal
 
-Copy **real** Module 02/03 rows into `RawAWSLogs`.  
-Because the update policy already exists, ADX should automatically create matching rows in `UnifiedHybridLogs` with `Environment = "AWS"`.
+Copy **real** Module 02/03 rows into `RawAWSLogs`. The update policy should automatically create `Environment="AWS"` rows in `UnifiedHybridLogs`.
 
-### Why this step exists
+### What happens to the data in this step
 
-The hybrid demo is not useful if the AWS side is fake. Your AWS rows prove: “this unified timeline includes real cloud activity we already captured.”
+```text
+CloudTrailEvents  (or CloudWatchLogs)
+        │
+        │  load_from_cloudtrail.kql  OR  load_from_cloudwatch.kql
+        │  (.set-or-append + project into RawAWS shape)
+        ▼
+   RawAWSLogs
+        │
+        │  update policy runs NormalizeAWSLogs()
+        ▼
+ UnifiedHybridLogs   (Environment = "AWS")
+```
 
 ### Which file to run
 
-| Situation | File to open and run |
-|-----------|----------------------|
+| If this is true | Run this file |
+|-----------------|---------------|
 | `CloudTrailEvents` has rows (preferred) | `assets/module_04/load_from_cloudtrail.kql` |
-| `CloudTrailEvents` is empty, but `CloudWatchLogs` has rows | `assets/module_04/load_from_cloudwatch.kql` |
+| `CloudTrailEvents` empty, `CloudWatchLogs` has rows | `assets/module_04/load_from_cloudwatch.kql` |
 
-What the CloudTrail load does (conceptually):
+The CloudTrail load takes up to 100 events and maps fields such as:
 
-- Takes up to 100 rows from `CloudTrailEvents`
-- Maps them into `RawAWSLogs` columns (`Timestamp`, `Service`, `Level`, `Details`)
-- Uses `.set-or-append` so it adds into `RawAWSLogs`
-
-You do **not** insert into `UnifiedHybridLogs` yourself in this step. The policy should do that.
+- `EventTime` → `Timestamp`
+- `EventSource` → `Service`
+- error/read-only hints → `Level`
+- event name + region → `Details`
 
 ### Do this exactly
 
-1. Open the chosen load file in VS Code.
-2. Copy all of it into ADX Query (still in **your** database).
-3. Run it.
-4. Check raw and unified:
+1. Open the chosen load file.
+2. Paste all of it into ADX Query in **your** database.
+3. Run.
+4. Verify:
 
 ```kusto
 RawAWSLogs | count
@@ -200,43 +355,53 @@ UnifiedHybridLogs
 ### Checkpoint
 
 - `RawAWSLogs | count` > 0  
-- You should also see AWS rows in `UnifiedHybridLogs` (same count or close, depending on prior runs)
+- Unified shows AWS rows (policy worked)
 
 ### If something is wrong
 
-| What you see | What it means | What to do |
-|--------------|---------------|------------|
-| RawAWSLogs is 0 | Wrong load file, or source table empty | Confirm source count; use the other load file if needed |
-| Raw has rows, Unified AWS is 0 | Policy missing when you loaded, or policy broken | Run Step 1 checkpoint again; then **re-run** the load after policy is confirmed |
-| You feel tempted to type fake AWS rows | That breaks the teaching rule | Stop; refresh real M02/M03 data instead |
+| Symptom | Fix |
+|---------|-----|
+| Raw is 0 | Wrong file or empty source — fix Section 4 / choose the other load file |
+| Raw > 0 but Unified AWS is 0 | Policy was missing — complete Step 1 checkpoint, then **re-run** the load |
+| Urge to invent AWS rows | Stop — refresh real M02/M03 data instead |
 
 ---
 
-## Step 3 — Load on-premises demo rows into `RawOnPremLogs`
+## Step 3 — Load on-premises-shaped rows (and what comes next)
 
-### Goal (plain English)
+### Goal
 
-Insert **two sample on-prem-style rows** so Unified also shows `Environment = "On-Premises"`.
+Create a second environment value (`On-Premises`) in `UnifiedHybridLogs` so your hybrid query works end-to-end today.
 
-### Why this step is a demo (say this to yourself)
+### What happens to the data in this step (today)
 
-In production, on-prem logs usually arrive through agents (Logstash / Filebeat — Modules 05–06).  
-This classroom has no VPN and no live datacenter feed in Module 04.
+```text
+load_onprem.kql
+  (short on-premises-shaped insert into ADX)
+        │
+        ▼
+  RawOnPremLogs
+        │
+        │  update policy runs NormalizeOnPremLogs()
+        ▼
+ UnifiedHybridLogs   (Environment = "On-Premises")
+```
 
-So `load_onprem.kql` intentionally inserts two dated sample rows (for example an app-server memory error and a firewall rule update).  
-That is enough to prove:
+### How real host data will arrive later (Modules 05–07)
 
-- the second raw table works  
-- the second normalize function works  
-- Unified can hold more than one environment  
+You will use a **cloud isolated lab VM**. On that VM:
 
-This is **not** how you filled AWS CloudWatch in Module 03.
+1. **Filebeat** and **Metricbeat** capture host logs and metrics (for example auth logs, web access, CPU/memory).
+2. **Logstash** receives those events, processes them (parse / enrich), and **ingests into ADX**.
+3. Those ADX tables become your real host-side source. You can project them into the same hybrid / unified pattern you build here.
 
-### Do this exactly
+Module 04 focuses on the **ADX unify pattern**. Modules 05–07 focus on the **Beats → Logstash → ADX** collection path from the isolated VM.
+
+### Do this exactly (today)
 
 1. Open `assets/module_04/load_onprem.kql`.
-2. Run all of it in your database.
-3. Check:
+2. Run all of it.
+3. Verify:
 
 ```kusto
 RawOnPremLogs | count
@@ -247,52 +412,62 @@ UnifiedHybridLogs
 
 ### Checkpoint
 
-- `RawOnPremLogs | count` = **2** (on a clean first run)  
-- Unified shows rows with `Environment == "On-Premises"`
-
-### If something is wrong
-
-| What you see | What to do |
-|--------------|------------|
-| Raw on-prem is 0 | Re-run `load_onprem.kql`; confirm database |
-| Raw is 2, Unified on-prem is 0 | Policy not attached — return to Step 1 checkpoint, then load again |
-| Count is 4, 6, … | You ran the load more than once (`.set-or-append` accumulates). That is OK for class; focus on Environment values |
+- `RawOnPremLogs` has rows  
+- Unified shows `On-Premises` rows  
+- You understand the next course path is: isolated cloud VM → Filebeat / Metricbeat → Logstash → ADX  
 
 ---
 
 ## Step 4 — Query the unified timeline
 
-### Goal (plain English)
+### Goal
 
-Prove you can answer hybrid questions from **one** table.
+Prove one table answers hybrid questions.
 
 ### Do this exactly
 
-1. Run `assets/module_04/validate.kql` (counts + summarize by Environment + sample rows).
+1. Run `assets/module_04/validate.kql`.
 2. Optionally run `assets/module_04/explore.kql`.
-3. Continue with `04_Exercises.md` if time remains.
+3. Continue with `04_Exercises.md`.
 
-Key validation idea:
+Key check:
 
 ```kusto
 UnifiedHybridLogs
 | summarize n = count() by Environment
 ```
 
+You want **both** `AWS` and `On-Premises`.
+
+Sample inspection:
+
+```kusto
+UnifiedHybridLogs
+| take 20
+```
+
 ### You're done when
 
-`UnifiedHybridLogs` shows **both**:
-
-- `AWS`
-- `On-Premises`
-
-and you understand:
-
-- raw tables keep source shape  
-- unified table holds the five shared columns  
-- update policy copied rows automatically after Step 1  
+- You can explain the AWS journey: activity → S3 (earlier modules) → M02/M03 tables → RawAWSLogs → Unified  
+- You can explain today’s on-premises-shaped load into RawOnPremLogs → Unified  
+- You can explain the **next** host path: isolated cloud VM → Filebeat / Metricbeat → Logstash → ADX  
+- `UnifiedHybridLogs` shows both environments  
+- You did **not** invent AWS rows inside Module 04  
 
 ### Keep for later
 
-Do **not** drop `CloudTrailEvents` / `CloudWatchLogs` just because Hybrid worked. You may need them again.  
-After Modules 05–06, you can later project real host/web logs into the same unified idea.
+Do not drop `CloudTrailEvents` / `CloudWatchLogs` just because Hybrid worked.  
+After Modules 05–07, you will have real host tables from Logstash to connect to this hybrid idea.
+
+---
+
+## Quick failure guide
+
+| Problem | Likely cause | Fix |
+|---------|--------------|-----|
+| Cannot start Hybrid | No M02/M03 rows | Section 4 generate + ingest |
+| Unified empty after loads | Policy after load / policy missing | Step 1 checkpoint, then reload raw |
+| Only AWS in Unified | Skipped Step 3 | Run `load_onprem.kql` |
+| Only On-Premises in Unified | Skipped Step 2 or empty AWS sources | Section 4 + Step 2 |
+| Wrong DB | Dropdown | `print Database` |
+| Student building VPN | Misunderstood lab | Stop — unify-in-ADX only today |

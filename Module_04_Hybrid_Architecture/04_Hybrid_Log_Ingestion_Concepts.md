@@ -35,7 +35,7 @@ A **raw table** stores data in a shape that is close to the original source.
 | Raw table | What it holds | Why keep it |
 |-----------|---------------|-------------|
 | `RawAWSLogs` | Rows copied from your Module 02/03 AWS tables | You can still investigate AWS-specific fields later |
-| `RawOnPremLogs` | On-prem style rows (in this lab: a small demo insert) | Same idea for non-AWS sources |
+| `RawOnPremLogs` | On-premises / host-shaped rows | Same idea for non-AWS sources; real host feed arrives via Logstash in Modules 05–07 |
 
 “Per source shape” means: AWS rows stay in an AWS-friendly structure; on-prem rows stay in an on-prem-friendly structure. You do **not** throw away the original shape on day one.
 
@@ -126,13 +126,15 @@ More detail and diagrams: **`04_Hybrid_Primer.md`**.
 
 ---
 
-## What is real vs demo in this lab
+## AWS today vs host data next
 
-| Side | Real or demo? | Meaning |
-|------|----------------|---------|
-| AWS rows | **Real** | Copied from your Module 02/03 tables (from real CloudTrail / CloudWatch activity) |
-| On-prem rows | **Demo only** | Two sample rows so you can see a second `Environment` value. Production on-prem usually arrives later via Logstash/Filebeat (Modules 05–06) |
-| VPN / ExpressRoute / Direct Connect | **Not built** | Discuss only. This lab is about unify-in-ADX, not network connectivity |
+| Side | In Module 04 | What comes next |
+|------|--------------|-----------------|
+| AWS rows | **Real** — from Module 02/03 tables | Keep using CloudTrail / CloudWatch paths |
+| On-prem / host rows | Short `load_onprem.kql` so Unified shows `On-Premises` now | **Isolated cloud VM** with **Filebeat** / **Metricbeat** capturing data, **Logstash** processing it, then ingest into ADX (Modules 05–07) |
+| VPN / ExpressRoute | Not required for this unify-in-ADX lab | Host collection uses the cloud lab VM + Logstash path instead |
+
+Module 04 teaches the **ADX hybrid shape**. Modules 05–07 teach how host data **actually arrives** through Logstash.
 
 ---
 

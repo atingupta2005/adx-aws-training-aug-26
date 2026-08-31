@@ -1,0 +1,5 @@
+RawAWSLogs | count
+RawOnPremLogs | count
+// One timeline, two environments
+UnifiedHybridLogs | summarize n = count() by Environment
+UnifiedHybridLogs | take 20

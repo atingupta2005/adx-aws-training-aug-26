@@ -70,26 +70,28 @@ flowchart LR
 
 | Column | Question it answers | Example AWS | Example on-prem |
 |--------|---------------------|-------------|-----------------|
-| `LogTime` | When did it happen? | CloudTrail `EventTime` | Simulated syslog time |
+| `LogTime` | When did it happen? | CloudTrail `EventTime` | Host / syslog-style time from Logstash path |
 | `Environment` | Which world? | `AWS` | `On-Premises` |
-| `SourceService` | Which system? | `eventSource` / log group | `firewall` / `app-server` |
+| `SourceService` | Which system? | `eventSource` / log group | host / service name from Beats/Logstash |
 | `LogLevel` | How serious? | derived from errors / info | `ERROR` / `INFO` |
-| `Message` | What happened, briefly? | event name + context | free text |
+| `Message` | What happened, briefly? | event name + context | parsed log / metric context |
 
 “**Project**” means: calculate or copy these five fields from the richer raw row.
 
 ---
 
-## On-prem in this lab
+## On-prem / host data in this course
 
-There is **no VPN**, **no ExpressRoute**, and **no live syslog shipper** in the classroom for Module 04.
+**In Module 04 (today):** run `load_onprem.kql` so `RawOnPremLogs` / `UnifiedHybridLogs` can show an `On-Premises` environment while you learn the ADX update-policy pattern.
 
-On-prem rows come from a small **`datatable`** insert (`load_onprem.kql`). That is only a stand-in so you can:
+**Next (Modules 05–07):** you use a **cloud isolated lab VM**. On that VM you install:
 
-1. See a second `Environment` value (`On-Premises`).
-2. Prove the normalize function + update policy work for more than one source.
+1. **Filebeat** / **Metricbeat** — capture host logs and metrics  
+2. **Logstash** — process those events and **ingest into ADX**
 
-In production, the same raw table might be fed by Logstash, Filebeat, Event Hub, or batch files (you build agent paths in Modules 05–06).
+That is how real host-side data arrives for this training. Module 04 prepares the unified ADX design first; Logstash brings the live collection path afterward.
+
+You do **not** need a customer site-to-site VPN for these classroom modules.
 
 ---
 

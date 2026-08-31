@@ -1,0 +1,12 @@
+// Use only if CloudTrailEvents is empty.
+.set-or-append RawAWSLogs <|
+CloudWatchLogs
+| where isnotnull(logEvents)
+| mv-expand Event = logEvents
+| extend Event = todynamic(Event)
+| take 100
+| project
+    Timestamp = unixtime_milliseconds_todatetime(tolong(Event.timestamp)),
+    Service = logGroup,
+    Level = "INFO",
+    Details = tostring(Event.message)

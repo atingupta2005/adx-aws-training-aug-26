@@ -1,0 +1,61 @@
+// Module 04 — explore hybrid unified logs
+// Database: ADXTrainingDB_<your-login>
+// Run ONE statement at a time.
+// Prerequisite: setup.kql + load scripts completed.
+
+// =============================================================================
+// A. Sanity
+// =============================================================================
+
+RawAWSLogs | count
+RawOnPremLogs | count
+UnifiedHybridLogs | count
+
+UnifiedHybridLogs | getschema
+
+// =============================================================================
+// B. Unified analytics
+// =============================================================================
+
+UnifiedHybridLogs
+| summarize Events = count() by Environment
+| order by Events desc
+
+UnifiedHybridLogs
+| summarize Events = count() by Environment, LogLevel
+| order by Environment, LogLevel
+
+UnifiedHybridLogs
+| summarize Events = count() by SourceService
+| order by Events desc
+| take 20
+
+UnifiedHybridLogs
+| order by LogTime desc
+| take 50
+| project LogTime, Environment, SourceService, LogLevel, Message
+
+UnifiedHybridLogs
+| summarize Events = count() by bin(LogTime, 1h), Environment
+| render timechart
+
+// =============================================================================
+// C. Raw vs unified
+// =============================================================================
+
+RawAWSLogs | take 5
+RawOnPremLogs | take 5
+
+UnifiedHybridLogs
+| where Environment == "On-Premises"
+| take 10
+
+UnifiedHybridLogs
+| where Environment == "AWS"
+| take 10
+
+// =============================================================================
+// D. Policy check
+// =============================================================================
+
+.show table UnifiedHybridLogs policy update

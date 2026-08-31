@@ -1,0 +1,8 @@
+.set-or-append RawAWSLogs <|
+CloudTrailEvents
+| take 100
+| project
+    Timestamp = EventTime,
+    Service = EventSource,
+    Level = iff(isnotempty(ErrorCode), "ERROR", iff(ReadOnly == true, "INFO", "WARN")),
+    Details = strcat(EventName, " region=", AwsRegion)

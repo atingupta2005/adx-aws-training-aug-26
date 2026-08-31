@@ -1,0 +1,49 @@
+.show tables
+| where TableName in ("CloudTrailEvents", "CloudWatchLogs")
+
+.create table UnifiedHybridLogs (
+    LogTime: datetime,
+    Environment: string,
+    SourceService: string,
+    LogLevel: string,
+    Message: string
+)
+
+.create table RawAWSLogs (
+    Timestamp: datetime,
+    Service: string,
+    Level: string,
+    Details: string
+)
+
+.create table RawOnPremLogs (
+    EventTime: datetime,
+    Node: string,
+    Severity: string,
+    LogData: string
+)
+
+.create function NormalizeAWSLogs() {
+    RawAWSLogs
+    | project
+        LogTime = Timestamp,
+        Environment = "AWS",
+        SourceService = Service,
+        LogLevel = Level,
+        Message = Details
+}
+
+.create function NormalizeOnPremLogs() {
+    RawOnPremLogs
+    | project
+        LogTime = EventTime,
+        Environment = "On-Premises",
+        SourceService = Node,
+        LogLevel = Severity,
+        Message = LogData
+}
+
+.alter table UnifiedHybridLogs policy update
+@'[{"Source":"RawAWSLogs","Query":"NormalizeAWSLogs()","IsEnabled":"True","IsTransactional":true},{"Source":"RawOnPremLogs","Query":"NormalizeOnPremLogs()","IsEnabled":"True","IsTransactional":true}]'
+
+.show table UnifiedHybridLogs policy update

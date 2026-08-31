@@ -1,0 +1,8 @@
+.set-or-append RawOnPremLogs <|
+datatable(OffsetMinutes: int, Node: string, Severity: string, LogData: string)
+[
+    10, "AppServer01", "CRITICAL", "Out of memory exception",
+    5, "Firewall", "INFO", "Rule updated successfully"
+]
+| extend EventTime = now() - OffsetMinutes * 1m
+| project EventTime, Node, Severity, LogData
