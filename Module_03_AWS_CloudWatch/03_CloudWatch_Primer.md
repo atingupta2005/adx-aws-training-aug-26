@@ -53,8 +53,8 @@ The AWS console and the CLI use these terms constantly. Learn them now so step i
 | **Log stream** | A sequence of events within a log group — typically one per host instance or Lambda function. Example: `Instance_01_u01`. |
 | **Log event** | One line in a stream: a Unix timestamp plus a message string. The message is usually JSON in modern applications. |
 | **Retention** | How long CloudWatch keeps log events before deleting them automatically. Lab default: 1 day (saves cost). |
-| **Subscription filter** | A rule attached to a log group that forwards matching new events to an external destination (Firehose, Lambda, or another account). The tap — events before the filter existed are not sent retroactively. |
-| **Firehose** | Amazon Data Firehose — a managed delivery stream that accepts events from CloudWatch subscriptions and writes batched objects to S3 (or other targets). Handles buffering, retries, and decompression. |
+| **Subscription filter** | A rule attached to a log group that forwards matching new events to an external destination (Firehose, Lambda, or another account). The tap — events before the filter existed are not sent retroactively. In this course the destination is the Firehose stream `cw-to-adx-stream-<login>`, not the S3 bucket name. |
+| **Firehose** | Amazon Data Firehose — a managed delivery stream that accepts events from CloudWatch subscriptions and writes batched objects to S3 (or other targets). Handles buffering, retries, and decompression. Give it its own name (`cw-to-adx-stream-<login>`); do not name it after the destination bucket. |
 
 ## Log group → S3 path (overview)
 
@@ -72,15 +72,15 @@ flowchart LR
   style S3 fill:#232F3E,stroke:#FF9900,color:#fff
 ```
 
-**Critical order:** create subscription filter **before** the traffic you need in S3. Old events are not shipped retroactively.
+**Critical order:** create subscription filter **before** the traffic you need in S3. Old events are not shipped retroactively. The first tiny object in S3 after creating the filter is often a `CONTROL_MESSAGE` health check — real app events show up as `DATA_MESSAGE` only after you use the API or Lambda.
 
 ## Hands-on (console)
 
 1. **CloudWatch** → **Log groups** → open your group (app group or `/aws/lambda/...`).
 2. Open a **log stream** → confirm lines from **API/Lambda use**, not only a smoke script.
-3. **Subscription filters** → Firehose destination.
+3. **Subscription filters** → destination must be Firehose stream `cw-to-adx-stream-<login>` (not the bucket name).
 4. **Firehose** → **Active** + **Decompress CloudWatch Logs** on.
-5. **S3** → `adx-cw-firehose-<login>` → recent object.
+5. **S3** → `adx-cw-firehose-<login>` → recent object → confirm `DATA_MESSAGE`, not only `CONTROL_MESSAGE`.
 
 ### Optional: CloudWatch Logs Insights
 

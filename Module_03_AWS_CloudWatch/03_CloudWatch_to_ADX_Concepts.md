@@ -39,6 +39,8 @@ When you run a Python/Node/Java service on EC2, in a container, or as a Lambda, 
 
 CloudWatch stores log events in log groups. A **subscription filter** is the mechanism that says "forward matching events from this log group to an external destination in real time." Without it, CloudWatch just holds the events and offers a query UI. The filter is what turns CloudWatch into a live stream source.
 
+The destination is a **Firehose delivery stream**. Students sometimes pick the S3 bucket name by mistake because both names contain their login — the filter dropdown must show `cw-to-adx-stream-<login>`. The IAM role CloudWatch assumes for that filter needs `firehose:PutRecordBatch` (not only `PutRecord`); otherwise CloudWatch can still show events while S3 never receives application batches.
+
 One important constraint: **events written before the filter existed are not shipped retroactively**. The filter starts forwarding from the moment it is created. This is why the lab builds the entire pipeline (including the filter) before sending any traffic.
 
 ### Why Firehose?
@@ -61,16 +63,19 @@ ADX uses a **pull** model for external data: you call `.ingest` and give ADX the
 ## Plain-English pipeline (end to end)
 
 1. Create a **log group** `/adx-training/app-logs-<login>` and a stream inside it. This is the address the checkout API writes to.
-2. Create an **S3 bucket** `adx-cw-firehose-<login>` — the landing zone for Firehose objects.
+2. Create an **S3 bucket** `adx-cw-firehose-<login>` — the landing zone for Firehose objects. This name is for storage only.
 3. Create a **Firehose** stream `cw-to-adx-stream-<login>` pointing at that bucket.
+   - The stream name is **not** the same as the bucket name. Keep both patterns exactly as written here.
    - Turn **on** "Decompress CloudWatch Logs" — mandatory, not optional.
    - Keep the final S3 object compression **UNCOMPRESSED** for the first ingest pass.
    - Buffer: ~1 MiB or 60 seconds — whichever comes first.
 4. Attach a **subscription filter** `ADX-Export-Filter-<login>` from the log group to Firehose.
-5. **Only then** run the checkout API and call it with `curl` (or invoke Lambda), so new events flow through the filter into Firehose and reach S3.
-6. Wait about **60–90 seconds** (Firehose buffer), list S3 to confirm objects landed, then `.ingest` into ADX.
+   - Destination = the Firehose stream (`cw-to-adx-stream-<login>`), never the S3 bucket name.
+   - Let the console create a fresh IAM role for CloudWatch → Firehose. That role must allow `firehose:PutRecord` and `firehose:PutRecordBatch`. Batch put is what carries real log events; the first tiny S3 object after filter creation is often only a `CONTROL_MESSAGE` health check.
+5. **Only then** run the checkout API with `ADX_LOGIN` set to **your** login and call it with `curl` (or invoke Lambda), so new events flow through the filter into Firehose and reach S3.
+6. Wait about **60–90 seconds** (Firehose buffer), list S3, peek an object for `DATA_MESSAGE`, then `.ingest` into ADX.
 
-Events written **before** step 4 are not shipped. Order matters.
+Events written **before** step 4 are not shipped. Order matters. An S3 object that only contains `CONTROL_MESSAGE` is not proof that order traffic made it through.
 
 ---
 
@@ -154,7 +159,7 @@ A concrete S3 object looks like this (abbreviated):
 
 **Practical KQL tips:**
 
-- Filter first: `| where messageType == "DATA_MESSAGE"` — Firehose also writes heartbeat records (`CONTROL_MESSAGE`) that have no events.
+- Filter first: `| where messageType == "DATA_MESSAGE"` — Firehose also writes heartbeat records (`CONTROL_MESSAGE`) that have no application events. The first object after you create a subscription filter is often only that health check.
 - The `logEvents` column in ADX is a dynamic array. Use `mv-expand` to get one row per event.
 - The `message` field inside each event is a JSON **string** (not an object). Use `parse_json(tostring(logEvents.message))` to reach the application fields.
 - Keep table `CloudWatchLogs` for Module 04 Hybrid — do not drop it after this module.
@@ -187,8 +192,10 @@ Git Bash rewrites strings starting with `/` as Windows file paths before passing
 ## In class
 
 - Database: `ADXTrainingDB_<your-login>`
-- Firehose bucket: `adx-cw-firehose-<login>` — not the CloudTrail bucket from Module 02, not the Module 01 bucket
+- Firehose **stream**: `cw-to-adx-stream-<login>` — this is what the subscription filter selects
+- Firehose **bucket**: `adx-cw-firehose-<login>` — where objects land; not the CloudTrail bucket from Module 02, not the Module 01 bucket
 - Reader IAM is scoped to **your** bucket only
 - Git Bash: `export MSYS_NO_PATHCONV=1` before `aws logs` commands
 - Card keys run the API and the AWS console; reader keys go only in the `.ingest` URI
+- `ADX_LOGIN` must match your access card so the API writes to **your** log group
 - Leave `CloudWatchLogs` — Module 04 uses it as an AWS source table

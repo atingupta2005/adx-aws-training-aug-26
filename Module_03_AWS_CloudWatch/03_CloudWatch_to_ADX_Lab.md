@@ -104,6 +104,8 @@ Your application JSON lives **inside** `logEvents[*].message` as a string. In KQ
 
 Firehose also sends periodic heartbeat records where `messageType == "CONTROL_MESSAGE"`. Those are normal — filter them out with `| where messageType == "DATA_MESSAGE"`.
 
+When you first attach a subscription filter, CloudWatch often writes a short **control** object to S3 to check that Firehose is reachable. Seeing one small object appear does **not** mean your order or login events arrived. Open the object (or ingest and query) and look for `messageType":"DATA_MESSAGE"` and application fields such as `order.created`.
+
 ---
 
 ## 3. Names (use your login from the access card)
@@ -119,6 +121,8 @@ Your login is one of `u01` … `u06`. Copy it exactly from your access card — 
 | Firehose stream | `cw-to-adx-stream-<login>` | `cw-to-adx-stream-u01` |
 | Subscription filter | `ADX-Export-Filter-<login>` | `ADX-Export-Filter-u01` |
 | IAM reader | `adx-cw-s3-reader-<login>` | `adx-cw-s3-reader-u01` |
+
+The **S3 bucket** and the **Firehose stream** are two different resources with two different names. The bucket is only where files land. When CloudWatch asks which Firehose to use, always pick `cw-to-adx-stream-<login>` — never type or select the bucket name `adx-cw-firehose-<login>` there.
 
 **Two separate key pairs — never mix them:**
 
@@ -182,7 +186,7 @@ Set this before any AWS CLI command that includes a path like `/adx-training/...
 **Do this exactly:**
 
 1. Console → **S3** → **Create bucket**
-2. Bucket name: `adx-cw-firehose-<your-login>`
+2. Bucket name: `adx-cw-firehose-<your-login>` — this is storage only; it is **not** the Firehose stream name you will choose later
 3. AWS Region: **us-east-1**
 4. **Block all public access** = on (this is the default — do not uncheck it)
 5. All other settings default → **Create bucket**
@@ -210,18 +214,18 @@ Set this before any AWS CLI command that includes a path like `/adx-training/...
 2. **Create Firehose stream**
 3. **Source:** **Direct PUT**
 4. **Destination:** **Amazon S3**
-5. **S3 bucket:** choose `adx-cw-firehose-<your-login>`
-6. **Firehose stream name:** `cw-to-adx-stream-<your-login>`
+5. **S3 bucket:** choose `adx-cw-firehose-<your-login>` (destination for files)
+6. **Firehose stream name:** type `cw-to-adx-stream-<your-login>` exactly — do **not** reuse the bucket name as the stream name
 7. **Buffer hints:** Size **1 MiB**, Interval **60 seconds**
 8. **S3 compression and encryption:** compression = **UNCOMPRESSED** (keep the final S3 object uncompressed for easy ingest)
 9. **Source record transformation / decompression:**
    - Do **not** enable Lambda transform
    - Find the option **"Decompress source records from Amazon CloudWatch Logs"** — it may appear as a toggle or dropdown depending on the console version
    - Set it to **Turn on decompression** / **Enabled**
-10. IAM role: when prompted, let AWS create a new role automatically
+10. IAM role: when prompted, let AWS create a new role automatically (this role is for Firehose writing to S3 — different from the CloudWatch subscription role in the next step)
 11. **Create Firehose stream** → on the list page wait until status changes to **Active** (30–90 seconds)
 
-**Checkpoint:** Stream `cw-to-adx-stream-<your-login>` shows **Active** status in the Firehose list.
+**Checkpoint:** Stream `cw-to-adx-stream-<your-login>` shows **Active** status in the Firehose list. Confirm the name starts with `cw-to-adx-stream-`, not `adx-cw-firehose-`.
 
 **If wrong:**
 
@@ -231,6 +235,7 @@ Set this before any AWS CLI command that includes a path like `/adx-training/...
 | Stream stuck "Creating" for more than 5 minutes | Refresh the browser; if still creating after another minute, ask the trainer |
 | Stream is Active but decompress was not set | Click into the stream → **Edit** → enable decompression — do this before creating the subscription filter |
 | Destination bucket is a different login | Delete and recreate with the correct bucket name |
+| You named the Firehose stream after the bucket | Create a new stream named `cw-to-adx-stream-<your-login>` and point the subscription filter at that stream |
 
 ---
 
@@ -246,22 +251,30 @@ Set this before any AWS CLI command that includes a path like `/adx-training/...
 
 1. Console → **CloudWatch** → **Log groups** → click `/adx-training/app-logs-<your-login>`
 2. Top-right **Actions** → **Subscription filters** → **Create Amazon Data Firehose subscription filter**
-3. **Amazon Data Firehose stream:** select `cw-to-adx-stream-<your-login>` from the dropdown
+3. **Amazon Data Firehose stream:** select `cw-to-adx-stream-<your-login>` from the dropdown  
+   - Read the name carefully. If you see anything that looks like `adx-cw-firehose-<login>`, that is the **bucket** pattern — do not use it. The stream must be `cw-to-adx-stream-<your-login>`.
 4. **Filter pattern:** leave completely blank (forward all events)
-5. **IAM role:** choose **Create a new role** or an existing role with CloudWatch → Firehose permission
+5. **IAM role:** choose **Create a new role** (recommended). Let the console create a role for CloudWatch Logs to write to **this** Firehose stream.  
+   - Prefer a fresh role over picking an older one from another attempt.  
+   - After the filter is created, open **IAM → Roles**, find the role the wizard created, and confirm its permission policy allows both `firehose:PutRecord` **and** `firehose:PutRecordBatch` on `cw-to-adx-stream-<your-login>`. CloudWatch uses batch puts for real log data; `PutRecord` alone is enough for the initial health check but not for your order events.
 6. **Subscription filter name:** `ADX-Export-Filter-<your-login>`
-7. **Start streaming** / **Create** button
+7. **Start streaming** / **Create** button — if creation fails with “could not deliver test message,” wait until Firehose is **Active**, confirm the role has `PutRecordBatch`, then try again
 
-**Checkpoint:** The subscription filter `ADX-Export-Filter-<your-login>` appears in the log group's Subscription filters tab.
+**Checkpoint:**
+
+- The subscription filter `ADX-Export-Filter-<your-login>` appears on the log group’s Subscription filters tab
+- Its destination shows Firehose stream `cw-to-adx-stream-<your-login>` (not the S3 bucket name)
+- A small control object may appear in S3 within a minute — that only proves the tap can reach Firehose. Application `DATA_MESSAGE` objects appear only after you send traffic in Step 3
 
 **If wrong:**
 
 | Symptom | Fix |
 |---------|-----|
 | Firehose dropdown is empty | The Firehose stream may still be in "Creating" state — wait for Active, then return to this step |
-| IAM permission error during creation | Use the "Create a new role" option instead of selecting an existing one |
-| Filter created but points to wrong stream | Delete the filter and recreate pointing to the correct stream name |
+| IAM permission error / “could not deliver test message” | Use **Create a new role**; confirm Firehose is Active; ask the trainer to check that the role includes `firehose:PutRecordBatch` |
+| Filter created but points to wrong stream | Delete the filter and recreate pointing at `cw-to-adx-stream-<your-login>` |
 | Filter exists on wrong log group | You may have opened the wrong group — check the breadcrumb at the top of the page |
+| Logs appear in CloudWatch but S3 stays empty (or only a tiny control object) | Confirm the filter destination is the Firehose stream; confirm `PutRecordBatch` on the role; send **new** traffic after the filter exists; wait 60–90 s |
 
 ---
 
@@ -320,14 +333,14 @@ This is a small HTTP service. It writes to CloudWatch only when it handles an HT
 
 ```bash
 export MSYS_NO_PATHCONV=1
-export ADX_LOGIN=<your-login>
+export ADX_LOGIN=<your-login>   # must match your access card exactly (e.g. u01) — not a classmate's login
 export AWS_DEFAULT_REGION=us-east-1
 pip install boto3
 cd ~/adx-aws-training
 python assets/module_03/checkout_api/server.py
 ```
 
-The server starts and listens on `http://127.0.0.1:8080`. You should see a startup message in Terminal 1. Leave it open.
+The server starts and listens on `http://127.0.0.1:8080`. On startup it prints the **log group** and **stream** it will write to — both must include **your** login (`/adx-training/app-logs-<your-login>` and `Instance_01_<your-login>`). If those names show someone else’s login, stop the server, fix `ADX_LOGIN`, and start again. Leave Terminal 1 open.
 
 **Terminal 2 — use the service (run each command 2–3 times to generate variety):**
 
@@ -360,7 +373,11 @@ curl -s -X POST http://127.0.0.1:8080/v1/login \
 
 Console → **CloudWatch** → **Log groups** → `/adx-training/app-logs-<your-login>` → click stream `Instance_01_<your-login>` → you should see JSON events such as `order.created`, `auth.login.failed`, `http.request`.
 
-If the stream is empty, check that `ADX_LOGIN` is exported correctly and the server in Terminal 1 started without error. The server prints the log group name it is writing to on startup.
+If the stream is empty:
+
+- Confirm Terminal 1 still shows `ADX_LOGIN` matching your card and that the printed log group is `/adx-training/app-logs-<your-login>`
+- Confirm you are looking at **your** log group, not a neighbor’s
+- Confirm the subscription filter (Step 1d) already exists — events written before the filter never ship to S3
 
 Full API details and additional endpoints: `assets/module_03/checkout_api/README.md`.
 
@@ -428,6 +445,15 @@ aws s3 ls s3://adx-cw-firehose-<your-login>/ --recursive
 ```
 
 You should see one or more objects with key paths shaped like `YYYY/MM/DD/HH/...`.
+
+**Check that the object is real application data, not only a health check:**
+
+```bash
+# Replace KEY with one of the object keys from aws s3 ls
+aws s3 cp s3://adx-cw-firehose-<your-login>/KEY - | head -c 400
+```
+
+You want to see `"messageType":"DATA_MESSAGE"` and, inside `logEvents`, strings such as `order.created`. A lone `"messageType":"CONTROL_MESSAGE"` means CloudWatch checked the destination when the filter was created — send API/Lambda traffic again (after the filter exists), wait another 60–90 seconds, and list S3 again.
 
 **If the result is empty,** go straight to the Quick failure guide at the bottom of this file.
 
@@ -505,8 +531,8 @@ This directly calls the CloudWatch API to push fabricated events. It confirms th
 |---------|-----|
 | Ingest fails: "Access denied" | Check the reader key ID and secret — they must be the `adx-cw-s3-reader-<login>` keys, not the access-card keys |
 | `CloudWatchLogs | count` returns 0 after ingest | Run `.show operations` in ADX to see the ingest status; the S3 object may still be empty (return to Step 3 "Confirm S3") |
-| All rows have `messageType == "CONTROL_MESSAGE"` | Normal heartbeats from Firehose — add `| where messageType == "DATA_MESSAGE"` to every query |
-| No `DATA_MESSAGE` rows at all | Traffic was sent before the subscription filter existed — re-run curl commands / Lambda invokes now, wait 60–90 s, run the ingest again |
+| All rows have `messageType == "CONTROL_MESSAGE"` | You ingested only the health-check object, or no app traffic after the filter — send Path A/B traffic again, wait 60–90 s, ingest a newer object; always add `| where messageType == "DATA_MESSAGE"` |
+| No `DATA_MESSAGE` rows at all | Traffic before the filter, wrong Firehose on the filter, or subscription role missing `PutRecordBatch` — fix Step 1d, send traffic again, wait, ingest |
 | `logEvents` column is empty or null | Table mapping mismatch — re-run `create_tables.kql` then ingest a fresh S3 object |
 | `parsed.event` comes back empty | The API server was not running when curl was sent — restart the server, send traffic again, wait, ingest |
 
@@ -529,31 +555,44 @@ This directly calls the CloudWatch API to push fabricated events. It confirms th
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
 flowchart TD
-  START["S3 bucket empty?"] --> Q1{"Subscription filter exists?"}
+  START["S3 empty or only tiny objects?"] --> Q1{"Subscription filter exists?"}
   Q1 -->|no| FIX1["Create Step 1d filter<br/>then use API / Lambda again"]
-  Q1 -->|yes| Q2{"Traffic sent AFTER<br/>filter was created?"}
+  Q1 -->|yes| Q1b{"Filter points at<br/>cw-to-adx-stream-… ?"}
+  Q1b -->|no| FIX1b["Delete filter · recreate<br/>select Firehose stream not bucket name"]
+  Q1b -->|yes| Q2{"Traffic sent AFTER<br/>filter was created?"}
   Q2 -->|no| FIX2["curl the API again or<br/>re-invoke Lambda, then wait 60 s"]
-  Q2 -->|yes| Q3{"Firehose decompress ON?"}
+  Q2 -->|yes| Q2b{"Object contains<br/>DATA_MESSAGE?"}
+  Q2b -->|only CONTROL_MESSAGE| FIX2b["Health check only · send traffic again<br/>check PutRecordBatch on the role"]
+  Q2b -->|yes / new objects| Q3{"Firehose decompress ON?"}
+  Q2b -->|no objects at all| FIX2b
   Q3 -->|no| FIX3["Edit stream: enable decompress<br/>send traffic again · wait 60 s"]
   Q3 -->|yes| Q4{"Firehose status Active?"}
   Q4 -->|no| FIX4["Wait until Active<br/>(up to 2 min after creation)"]
-  Q4 -->|yes| Q5{"MSYS_NO_PATHCONV=1 set?"}
-  Q5 -->|no| FIX5["export MSYS_NO_PATHCONV=1<br/>then re-run aws s3 ls"]
-  Q5 -->|yes| HELP["Ask trainer"]
+  Q4 -->|yes| Q5{"ADX_LOGIN matches<br/>your log group?"}
+  Q5 -->|no| FIX5["export ADX_LOGIN=&lt;your-login&gt;<br/>restart server · send traffic again"]
+  Q5 -->|yes| Q6{"MSYS_NO_PATHCONV=1 set?"}
+  Q6 -->|no| FIX6["export MSYS_NO_PATHCONV=1<br/>then re-run aws s3 ls"]
+  Q6 -->|yes| HELP["Ask trainer"]
   style START fill:#F25022,stroke:#8B1A00,color:#fff
   style FIX1 fill:#107C10,stroke:#0B5A0B,color:#fff
+  style FIX1b fill:#107C10,stroke:#0B5A0B,color:#fff
   style FIX2 fill:#107C10,stroke:#0B5A0B,color:#fff
+  style FIX2b fill:#107C10,stroke:#0B5A0B,color:#fff
   style FIX3 fill:#107C10,stroke:#0B5A0B,color:#fff
   style FIX4 fill:#107C10,stroke:#0B5A0B,color:#fff
   style FIX5 fill:#107C10,stroke:#0B5A0B,color:#fff
+  style FIX6 fill:#107C10,stroke:#0B5A0B,color:#fff
   style HELP fill:#8764B8,stroke:#5C2D91,color:#fff
 ```
 
 | Problem | Most likely cause | Fix |
 |---------|-----------------|-----|
-| CloudWatch stream empty | Traffic before subscription filter, or server not writing to the correct log group | Check `ADX_LOGIN` env var; confirm filter exists; send traffic again |
+| CloudWatch stream empty | Wrong `ADX_LOGIN`, wrong log group open, or API not running | Match `ADX_LOGIN` to your card; open `/adx-training/app-logs-<your-login>`; restart the server and curl again |
+| Events in CloudWatch, S3 empty | No filter, filter on wrong Firehose, or traffic before the filter | Create/fix Step 1d; select `cw-to-adx-stream-<login>`; send traffic again; wait 60–90 s |
+| S3 has one tiny object only | That object is often `CONTROL_MESSAGE` (filter health check) | Peek the object; if no `DATA_MESSAGE`, send API traffic again after the filter exists |
+| CloudWatch full, S3 never gets `DATA_MESSAGE` | Subscription IAM role missing `firehose:PutRecordBatch` | Edit the role policy to allow `PutRecord` and `PutRecordBatch` on your Firehose stream; send traffic again |
 | S3 has objects but ADX is empty | Reader key wrong, or wrong bucket in ingest command | Verify `adx-cw-s3-reader-<login>` keys; confirm `adx-cw-firehose-<login>` in the ingest command |
-| Only `CONTROL_MESSAGE` rows in ADX | Normal Firehose heartbeats | Add `| where messageType == "DATA_MESSAGE"` to every query |
+| Only `CONTROL_MESSAGE` rows in ADX | Heartbeats only, or you ingested before app traffic | Add `| where messageType == "DATA_MESSAGE"`; send traffic; ingest a newer object |
 | `logEvents` is null after ingest | Table mapping mismatch or ingest used wrong format | Re-run `create_tables.kql`, then ingest a fresh S3 object |
 | `parsed.event` empty in KQL | API was not running when curl was sent, so no real log lines | Restart server, send curl traffic, wait, ingest |
 | Decompress was off during first ingest | S3 objects are compressed binary | Enable decompress on the Firehose stream, send new traffic, wait, ingest a new object |
