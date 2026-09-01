@@ -1,3 +1,22 @@
+// Module 05 — run in ADX Web UI on ADXTrainingDB_<your-login>
+// Run print Database = current_database() first (see lab Step 1).
+//
+// Block 1–2: table + JSON mapping (where rows land and how fields map).
+// Block 3: grant the Entra app permission to ingest into YOUR database.
+//
+// Why block 3 is required:
+//   Logstash signs in with the class Entra app (logstash-adx-ingestor), not your u01/u02 user.
+//   A table and mapping alone do not let that app write data. ADX needs an explicit
+//   Database Ingestor role on each student's database. Without it, Logstash authenticates
+//   but ingest calls return 403 and LogstashHostLogs stays empty.
+//
+// Replace before running:
+//   ADXTrainingDB_<your-login>  →  e.g. ADXTrainingDB_u01
+//   [CLIENT_ID]                 →  afed2047-fb94-41bd-bee5-e8c5b84fa1b8
+//   [TENANT_ID]                 →  05f46730-30d9-47bc-b103-d316ee58a3f5
+//
+// The string 'Logstash' at the end is only a label in .show principals — not a password.
+
 .create table LogstashHostLogs (
     LogTime: datetime,
     Hostname: string,
@@ -16,5 +35,9 @@
 ']'
 
 .add database ['ADXTrainingDB_<your-login>'] ingestors ('aadapp=[CLIENT_ID];[TENANT_ID]') 'Logstash'
+
 .show database ['ADXTrainingDB_<your-login>'] principals
-// Example database name for login u01: ADXTrainingDB_u01
+| where PrincipalType == "App" and Role == "Ingestor"
+
+// Example for u01 (after replacing placeholders):
+// .add database ['ADXTrainingDB_u01'] ingestors ('aadapp=afed2047-fb94-41bd-bee5-e8c5b84fa1b8;05f46730-30d9-47bc-b103-d316ee58a3f5') 'Logstash'

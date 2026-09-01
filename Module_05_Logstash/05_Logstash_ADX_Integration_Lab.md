@@ -110,7 +110,7 @@ You must see recent syslog-formatted lines. If the file is completely empty, run
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
 flowchart TB
-  A["Step 1 — ADX: table + mapping + Entra grant"] --> B["Step 2 — VM: install kusto plugin + check log file"]
+  A["Step 1 — ADX: table + mapping + Entra grant"] --> B["Step 2 — VM: Logstash + kusto plugin + log check"]
   B --> C["Step 3 — VM: configure + start Logstash pipeline"]
   C --> D["Step 4 — VM: generate real auth activity"]
   D --> E["Step 5 — ADX: query LogstashHostLogs"]
@@ -189,13 +189,15 @@ You must see:
 
 ---
 
-## Step 2 — Plugin install and log file check
+## Step 2 — Install Logstash (if needed), kusto plugin, prep directories
 
 On the **Linux lab VM** (see `00_Day5_How_We_Work.md`).
 
 ### Goal
 
-Verify Logstash is installed, install the `logstash-output-kusto` plugin, confirm `/var/log/secure` is readable, and create the staging directories the plugin needs.
+Confirm Logstash is present (install it if the VM is fresh), install the `logstash-output-kusto` plugin, confirm `/var/log/secure` is readable, and create the staging directories the plugin needs.
+
+The shared lab VM may not have Logstash pre-installed. The first student on a new VM runs the **Install Logstash** block below; everyone else checks the binary and moves on.
 
 ### Why a staging directory?
 
@@ -203,42 +205,97 @@ The kusto plugin v2.x does not stream events directly to ADX. It buffers parsed 
 
 ### Do this exactly
 
+**A — Confirm host and Logstash**
+
 ```bash
-# Confirm Logstash binary
-which logstash 2>/dev/null || ls /usr/share/logstash/bin/logstash
+which logstash 2>/dev/null || ls /usr/share/logstash/bin/logstash 2>/dev/null
+```
 
-# Check the auth log is readable
+If you get a path (for example `/usr/share/logstash/bin/logstash`), skip to **B**.
+
+If both commands fail, install Logstash on **Amazon Linux** (lab VM):
+
+```bash
+sudo rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+sudo tee /etc/yum.repos.d/logstash.repo <<'EOF'
+[logstash-8.x]
+name=Elastic repository for 8.x packages
+baseurl=https://artifacts.elastic.co/packages/8.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+EOF
+
+sudo yum install -y logstash
+
+/usr/share/logstash/bin/logstash --version
+```
+
+Install takes a few minutes and needs outbound HTTPS from the VM. Tell the trainer if `yum install` fails.
+
+**B — Auth log**
+
+```bash
 sudo tail -n 10 /var/log/secure 2>/dev/null || sudo tail -n 10 /var/log/auth.log
+```
 
-# Install the kusto output plugin
+You should see syslog lines (timestamp, hostname, process, message). If the file is empty, run `sudo true` a few times and tail again.
+
+**C — Kusto output plugin**
+
+```bash
 cd /usr/share/logstash
 sudo bin/logstash-plugin install logstash-output-kusto
-
-# Verify it installed
 bin/logstash-plugin list --verbose | grep kusto
-
-# Create staging directories
-sudo mkdir -p /tmp/kusto
-sudo chmod 777 /tmp/kusto
-mkdir -p /tmp/logstash-lab
 ```
+
+If the plugin is already listed, skip the install line.
+
+**D — Staging directories**
+
+```bash
+sudo mkdir -p /tmp/kusto /tmp/logstash-lab
+sudo chmod 777 /tmp/kusto
+```
+
+**E — AWS CLI (only if Step 3 needs the secret on this VM)**
+
+If you will run `aws ssm get-parameter` on the lab VM:
+
+```bash
+aws --version
+```
+
+If `aws` is missing:
+
+```bash
+sudo dnf install -y awscli
+aws --version
+```
+
+Configure with your **card** keys (`aws configure`, region `us-east-1`) — same as Day 1. If you prefer, run the SSM command from **VS Code** instead and paste the secret into the pipeline config on the lab VM.
 
 ### Checkpoint
 
-- `which logstash` or the manual path returns a path (no error).
-- `logstash-plugin list | grep kusto` shows the plugin name and a version number.
-- `sudo tail` returns syslog-formatted lines (timestamp + hostname + process + message).
+- `/usr/share/logstash/bin/logstash --version` prints a version (8.x).
+- `bin/logstash-plugin list | grep kusto` shows `logstash-output-kusto`.
+- `sudo tail` on `/var/log/secure` (or `auth.log`) returns recent lines.
 - `/tmp/kusto` and `/tmp/logstash-lab` exist.
 
 ### If something is wrong
 
 | Symptom | Fix |
 |---------|-----|
-| `logstash` not found | Wrong host — open the Linux lab VM shell, not VS Code |
-| Plugin install fails (timeout) | Check outbound internet from the VM; retry once; ask instructor if it persists |
-| `/var/log/secure` permission denied | Use `sudo tail …` not plain `tail` |
-| Auth log is completely empty | Run `sudo true` several times to seed it, then re-check |
-| Plugin already installed | That is fine — verify it with `list | grep kusto` and continue |
+| `logstash` not found after install | Use full path `/usr/share/logstash/bin/logstash`; confirm you are on the Linux lab VM, not VS Code |
+| `yum install logstash` fails (GPG / repo) | Re-run the `rpm --import` and repo file block; check VM has internet |
+| Plugin install fails (timeout) | Retry once; confirm HTTPS to `artifacts.elastic.co` and RubyGems is allowed |
+| `/var/log/secure` permission denied | Use `sudo tail …` |
+| Auth log completely empty | `sudo true` several times, then re-check |
+| `aws: command not found` on lab VM | Install with `sudo dnf install -y awscli`, or fetch the secret from VS Code |
+| `AccessDenied` on SSM | Use your card IAM user (`u01`…`u06`), not a reader user |
 
 ---
 
@@ -266,12 +323,14 @@ Copy the example pipeline config, fill in the five connection values, and start 
 
 ### Do this exactly
 
-1. Get the client secret (paste into the conf only — do not commit):
+1. Get the client secret (paste into the conf only — do not commit). On the lab VM if `aws` works; otherwise from VS Code:
 
 ```bash
 aws ssm get-parameter --name /adx/lab/entra-secret --with-decryption \
   --query Parameter.Value --output text
 ```
+
+If `aws` is not set up on the lab VM, see Step 2E or run this from VS Code and copy the value across.
 
 2. Copy the example on the lab VM:
 
@@ -444,6 +503,8 @@ LogstashHostLogs
 
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|
+| `logstash: command not found` | Not installed on fresh lab VM | Lab Step 2A — Elastic yum repo + `sudo yum install -y logstash` |
+| `Plugin not found: logstash-output-kusto` | Plugin not installed | Step 2C — `sudo bin/logstash-plugin install logstash-output-kusto` |
 | `LogstashHostLogs` does not exist | Step 1 not run | Run `create_tables.kql` in the correct database |
 | Table exists but count stays 0 after 5+ min | Entra grant missing OR wrong ingest URL | Check principals; confirm URL starts with `https://ingest-` |
 | Count stays 0 with correct URL + grant | ECS compatibility on → field names differ from mapping | Add `ecs_compatibility => disabled` inside the `grok { }` block |

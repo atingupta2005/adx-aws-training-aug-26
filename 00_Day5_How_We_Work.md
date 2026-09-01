@@ -31,6 +31,8 @@ which logstash || ls /usr/share/logstash/bin/logstash
 sudo tail -n 5 /var/log/secure 2>/dev/null || sudo tail -n 5 /var/log/auth.log
 ```
 
+If Logstash is missing, the lab **Step 2** block installs it (Elastic yum repo). First student on a fresh VM runs that; others skip if the binary is already there.
+
 Courseware on the lab VM is usually at `/opt/adx-aws-training/`. If that path is missing, ask the trainer.
 
 ## Names for Module 05 (example `u01`)
@@ -73,11 +75,12 @@ The Linux lab VM is **shared**. One Logstash at a time.
 ## Day 5 traps
 
 1. **Wrong host** — pipeline commands on VS Code will fail; use the Linux lab VM for Logstash.
-2. **Wrong URL** — query URL in the config → empty table with no obvious error.
-3. **Wrong database** — `database =>` in the conf must match **your** `ADXTrainingDB_<login>`.
-4. **Wait 2–5 minutes** after sudo/SSH activity before `LogstashHostLogs | count` looks wrong.
-5. **Real auth log** — tail `/var/log/secure`; do not point the lab pipeline at a fake `/tmp` file.
-6. **Do not commit** the client secret or paste it in chat.
+2. **Fresh VM** — Logstash may not be installed yet; run lab Step 2A once per VM.
+3. **Wrong URL** — query URL in the config → empty table with no obvious error.
+4. **Wrong database** — `database =>` in the conf must match **your** `ADXTrainingDB_<login>`.
+5. **Wait 2–5 minutes** after sudo/SSH activity before `LogstashHostLogs | count` looks wrong.
+6. **Real auth log** — tail `/var/log/secure`; do not point the lab pipeline at a fake `/tmp` file.
+7. **Do not commit** the client secret or paste it in chat.
 
 ## ADX
 
