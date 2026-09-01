@@ -11,11 +11,7 @@
 
 **Assets:** `assets/module_05/` (pipeline example, KQL, sample `web.log`)
 
-## In-depth practicals (after core lab)
-
-[../Logstash_In_Depth/README.md](../Logstash_In_Depth/README.md) — grok, stdout debug, second log shape, troubleshooting.
-
 ## Prerequisites
 
-- Modules 01–04 complete (ADX database exists; hybrid context from M04)  
-- Linux lab VM running; coordinate turn-taking on shared Logstash  
+- Modules 01–04 complete  
+- Lab VS Code + shared Linux lab VM (see `00_Day5_How_We_Work.md`)  

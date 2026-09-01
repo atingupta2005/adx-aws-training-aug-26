@@ -6,11 +6,11 @@
 
 **KQL files:** `assets/module_05/`.
 
-**VM:** Shared cloud isolated lab VM — coordinate turn-taking with the group before starting Logstash.
+**Setup:** read `00_Day5_How_We_Work.md` first. Logstash runs on the **shared Linux lab VM**, not on the VS Code host alone.
 
 ---
 
-## 1. What this lab is about (plain English)
+## 1. What this lab is about
 
 In Modules 01–04 you ingested AWS logs (batch, S3-based) and built a hybrid ADX table. Those methods work great when a file already exists in a bucket.
 
@@ -148,14 +148,14 @@ The Logstash kusto plugin sends JSON blobs to ADX. ADX needs three things in pla
 
 ### Do this exactly
 
-1. In Azure Data Explorer Web UI, select database `ADXTrainingDB_<your-login>` from the dropdown.
-2. Confirm you are in the right database:
+1. In lab VS Code, open `assets/module_05/create_tables.kql` (run `git pull` first if Module 05 is missing — see `00_Day5_How_We_Work.md`).
+2. In Azure Data Explorer Web UI, select database `ADXTrainingDB_<your-login>`.
+3. Confirm you are in the right database:
 
 ```kusto
 print Database = current_database()
 ```
 
-3. Open `assets/module_05/create_tables.kql`.
 4. Replace the two placeholders in the `.add database` line:
    - `[CLIENT_ID]` → `afed2047-fb94-41bd-bee5-e8c5b84fa1b8`
    - `[TENANT_ID]` → `05f46730-30d9-47bc-b103-d316ee58a3f5`
@@ -190,6 +190,8 @@ You must see:
 ---
 
 ## Step 2 — Plugin install and log file check
+
+On the **Linux lab VM** (see `00_Day5_How_We_Work.md`).
 
 ### Goal
 
@@ -232,7 +234,7 @@ mkdir -p /tmp/logstash-lab
 
 | Symptom | Fix |
 |---------|-----|
-| `logstash` not found | Check `/usr/share/logstash/` manually; ask the instructor — it is pre-installed on the lab VM |
+| `logstash` not found | Wrong host — open the Linux lab VM shell, not VS Code |
 | Plugin install fails (timeout) | Check outbound internet from the VM; retry once; ask instructor if it persists |
 | `/var/log/secure` permission denied | Use `sudo tail …` not plain `tail` |
 | Auth log is completely empty | Run `sudo true` several times to seed it, then re-check |
@@ -241,6 +243,8 @@ mkdir -p /tmp/logstash-lab
 ---
 
 ## Step 3 — Pipeline configuration and start
+
+On the **Linux lab VM**.
 
 ### Goal
 
@@ -256,19 +260,28 @@ Copy the example pipeline config, fill in the five connection values, and start 
 | `output { kusto }` | `ingest_url` | `https://ingest-adxtrainaug26.centralindia.kusto.windows.net` |
 | `output { kusto }` | `app_id` | `afed2047-fb94-41bd-bee5-e8c5b84fa1b8` |
 | `output { kusto }` | `app_tenant` | `05f46730-30d9-47bc-b103-d316ee58a3f5` |
-| `output { kusto }` | `app_key` | *(instructor provides the client secret)* |
+| `output { kusto }` | `app_key` | from SSM `/adx/lab/entra-secret` (see Day 5 setup doc) |
 | `output { kusto }` | `database` | `ADXTrainingDB_<your-login>` |
 | `output { kusto }` | `path` | `/tmp/kusto/%{+YYYY-MM-dd-HH-mm}.txt` |
 
 ### Do this exactly
 
-1. Copy the example to your working directory:
+1. Get the client secret (paste into the conf only — do not commit):
 
 ```bash
-cp assets/module_05/adx-pipeline.conf.example /tmp/logstash-lab/adx-pipeline.conf
+aws ssm get-parameter --name /adx/lab/entra-secret --with-decryption \
+  --query Parameter.Value --output text
 ```
 
-2. Edit the config:
+2. Copy the example on the lab VM:
+
+```bash
+cp /opt/adx-aws-training/assets/module_05/adx-pipeline.conf.example /tmp/logstash-lab/adx-pipeline.conf
+```
+
+If `/opt/adx-aws-training` is not on the lab VM, copy the file from VS Code or ask the trainer.
+
+3. Edit the config:
 
 ```bash
 nano /tmp/logstash-lab/adx-pipeline.conf
@@ -279,12 +292,12 @@ Fill in these five values:
 ```text
 ingest_url => "https://ingest-adxtrainaug26.centralindia.kusto.windows.net"
 app_id     => "afed2047-fb94-41bd-bee5-e8c5b84fa1b8"
-app_key    => "<client-secret-from-instructor>"
+app_key    => "<value-from-ssm>"
 app_tenant => "05f46730-30d9-47bc-b103-d316ee58a3f5"
 database   => "ADXTrainingDB_<your-login>"
 ```
 
-3. Validate the config syntax before starting:
+4. Validate the config syntax before starting:
 
 ```bash
 cd /usr/share/logstash
@@ -296,7 +309,7 @@ sudo bin/logstash \
 
 You should see `Configuration OK`.
 
-4. Start Logstash using a **unique** `--path.data` for your login:
+5. Start Logstash using a **unique** `--path.data` for your login:
 
 ```bash
 sudo bin/logstash \
@@ -305,7 +318,7 @@ sudo bin/logstash \
   -f /tmp/logstash-lab/adx-pipeline.conf
 ```
 
-5. Watch the startup messages for 30–60 seconds. You should see lines like:
+6. Watch the startup messages for 30–60 seconds. You should see lines like:
 
 ```
 [INFO ][logstash.inputs.file] Registering file input ...
@@ -333,6 +346,8 @@ Leave Logstash running in this terminal. Open a **second terminal** for Step 4.
 ---
 
 ## Step 4 — Generate real auth activity (while Logstash runs)
+
+In a **second terminal on the same Linux lab VM** (Logstash still running in the first).
 
 ### Goal
 
@@ -422,12 +437,6 @@ LogstashHostLogs
 - At least some rows have `Process` values matching things you actually did (e.g. `sudo`, `sshd`).
 - You can explain the journey: OS action → `/var/log/secure` → Logstash grok/date → kusto plugin queued ingest → ADX.
 - You understand the 2–5 minute queued ingest delay is normal, not a bug.
-
----
-
-## Continue — in-depth Logstash sessions
-
-After the core lab, work through **`Logstash_In_Depth/`** (five practical sessions: grok deep dive, stdout debugging, extra filters, web log shape, operations). Start at `Logstash_In_Depth/README.md`.
 
 ---
 

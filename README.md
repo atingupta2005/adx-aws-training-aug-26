@@ -6,8 +6,8 @@ Courseware for ADX + AWS labs. Login: `u01`–`u06`. Database: `ADXTrainingDB_<y
 
 **S3 → ADX:** `assets/ingest_s3_to_adx.sh` lists nested S3 keys and ingests without naming each file (`--module m01|m02|m03|m08`).
 
-**Day 1:** `00_Day1_How_We_Work.md` · **Day 2:** `00_Day2_How_We_Work.md`
+**Day 1:** `00_Day1_How_We_Work.md` · **Day 2:** `00_Day2_How_We_Work.md` · **Day 5 (Logstash):** `00_Day5_How_We_Work.md`
 
 GitHub: https://github.com/atingupta2005/adx-aws-training-aug-26
 
-This repo includes **Modules 01–05**. Your trainer will issue additional material (e.g. Logstash in-depth sessions, Modules 06–08) when the class reaches them.
+This repo includes **Modules 01–05**. Your trainer will issue Modules 06–08 when the class reaches them.
