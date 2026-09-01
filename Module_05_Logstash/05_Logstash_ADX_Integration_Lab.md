@@ -269,6 +269,7 @@ If the plugin is already listed, skip the install line.
 ```bash
 sudo mkdir -p /tmp/kusto /tmp/logstash-lab
 sudo chmod 777 /tmp/kusto
+sudo chown "$(whoami):$(whoami)" /tmp/logstash-lab
 ```
 
 **E — AWS CLI (only if Step 3 needs the secret on this VM)**
@@ -516,6 +517,7 @@ LogstashHostLogs
 |---------|--------------|-----|
 | `/var/log/secure` missing | rsyslog not enabled on VS Code host | Trainer: `prepare_logstash_vscode_host.sh` |
 | `tail: cannot open ... auth.log` | Wrong OS path — AL2023 uses `/var/log/secure` only | Enable rsyslog; do not use auth.log fallback |
+| Logstash starts but `/var/log/secure` permission denied in log | Started without `sudo` | Stop Logstash; restart with `sudo bin/logstash` (Step 3) |
 | `Plugin not found: logstash-output-kusto` | Plugin not installed | Step 2C — `sudo bin/logstash-plugin install logstash-output-kusto` |
 | `LogstashHostLogs` does not exist | Step 1 not run | Run `create_tables.kql` in the correct database |
 | Table exists but count stays 0 after 5+ min | Entra grant missing OR wrong ingest URL | Check principals; confirm URL starts with `https://ingest-` |
