@@ -96,7 +96,8 @@ Run these before Step 1 of the lab to avoid surprises:
 which logstash 2>/dev/null || ls /usr/share/logstash/bin/logstash
 
 # Auth log readable and non-empty?
-sudo tail -n 5 /var/log/secure 2>/dev/null || sudo tail -n 5 /var/log/auth.log
+ls -l /var/log/secure
+sudo tail -n 5 /var/log/secure
 
 # kusto plugin installed?
 /usr/share/logstash/bin/logstash-plugin list --verbose 2>/dev/null | grep kusto

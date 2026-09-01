@@ -1,17 +1,10 @@
 # How we work on Day 5 (Module 05 — Logstash)
 
-Same logins as Day 1 (`u01` … `u06`). Course folder is at `~/adx-aws-training` on **lab VS Code** — do **not** `git clone` again.
+Same logins as Day 1 (`u01` … `u06`). Same **lab VS Code** host as Days 1–4 — port `8081`–`8086` on `54.174.192.103`. Course folder: `~/adx-aws-training`.
 
-Today you use **two** machines:
+Module 05 runs **on this host** (Logstash is already installed under `/usr/share/logstash`). You do **not** open a second VM for Logstash unless the trainer says otherwise.
 
-| Where | Used for |
-|-------|----------|
-| **Lab VS Code** (card: `54.174.192.103`, port `8081`–`8086`) | `git pull`, KQL files, ADX Step 1, `aws ssm` for the Entra secret |
-| **Shared Linux lab VM** (SSM or SSH command on your card) | Logstash, `/var/log/secure`, pipeline config, Steps 2–4 |
-
-Logstash is **not** installed on the VS Code host. If `which logstash` returns nothing, you are still on VS Code — open the Linux lab VM shell first.
-
-## Start here (VS Code terminal)
+## Start here
 
 ```bash
 cd ~/adx-aws-training
@@ -22,18 +15,20 @@ aws sts get-caller-identity
 
 ARN must end with `user/u01` (or **your** login).
 
-## Linux lab VM — quick check
-
-Open a **second** terminal using the command on your access card. Then:
+## Before Logstash — quick checks
 
 ```bash
-which logstash || ls /usr/share/logstash/bin/logstash
-sudo tail -n 5 /var/log/secure 2>/dev/null || sudo tail -n 5 /var/log/auth.log
+# Logstash binary (use full path if which fails)
+ls /usr/share/logstash/bin/logstash
+
+# Auth log — Amazon Linux uses /var/log/secure
+ls -l /var/log/secure
+sudo tail -n 5 /var/log/secure
 ```
 
-If Logstash is missing, the lab **Step 2** block installs it (Elastic yum repo). First student on a fresh VM runs that; others skip if the binary is already there.
+If `/var/log/secure` is **missing**, tell the trainer — they run `prepare_logstash_vscode_host.sh` once to enable `rsyslog`. Do not continue Step 2 until the file exists.
 
-Courseware on the lab VM is usually at `/opt/adx-aws-training/`. If that path is missing, ask the trainer.
+When `sudo` prompts, use your **Linux / IDE password** from the access card.
 
 ## Names for Module 05 (example `u01`)
 
@@ -46,23 +41,23 @@ Courseware on the lab VM is usually at `/opt/adx-aws-training/`. If that path is
 | App ID | `afed2047-fb94-41bd-bee5-e8c5b84fa1b8` |
 | Tenant ID | `05f46730-30d9-47bc-b103-d316ee58a3f5` |
 | Ingest URL | `https://ingest-adxtrainaug26.centralindia.kusto.windows.net` |
-| Auth log | `/var/log/secure` (Amazon Linux) |
+| Auth log | `/var/log/secure` |
 | Entra secret | SSM `/adx/lab/entra-secret` — never commit, never chat |
 
-Use the **ingest** URL above, not the query URL (`https://adxtrainaug26…` without `ingest-`).
+Use the **ingest** URL, not the query URL (`https://adxtrainaug26…` without `ingest-`).
 
-## Entra secret (runtime only)
+## Entra secret
 
 ```bash
 aws ssm get-parameter --name /adx/lab/entra-secret --with-decryption \
   --query Parameter.Value --output text
 ```
 
-Paste the value into `app_key` in `/tmp/logstash-lab/adx-pipeline.conf` on the **Linux lab VM** only.
+Paste into `app_key` in `/tmp/logstash-lab/adx-pipeline.conf` only.
 
 ## Turn-taking
 
-The Linux lab VM is **shared**. One Logstash at a time.
+The VS Code host is **shared**. One Logstash at a time.
 
 1. Ask: "Is anyone running Logstash?"
 2. Use your own `--path.data`, e.g. `/tmp/logstash-lab/data-u01`.
@@ -74,14 +69,13 @@ The Linux lab VM is **shared**. One Logstash at a time.
 
 ## Day 5 traps
 
-1. **Wrong host** — pipeline commands on VS Code will fail; use the Linux lab VM for Logstash.
-2. **Fresh VM** — Logstash may not be installed yet; run lab Step 2A once per VM.
-3. **Wrong URL** — query URL in the config → empty table with no obvious error.
-4. **Wrong database** — `database =>` in the conf must match **your** `ADXTrainingDB_<login>`.
-5. **Wait 2–5 minutes** after sudo/SSH activity before `LogstashHostLogs | count` looks wrong.
-6. **Real auth log** — tail `/var/log/secure`; do not point the lab pipeline at a fake `/tmp` file.
-7. **Do not commit** the client secret or paste it in chat.
-8. **Sudo denied** — use Linux password at prompt; if not in sudoers, trainer runs `grant_sudo_lab_users.sh`.
+1. **`/var/log/secure` missing** — trainer must enable rsyslog before class; you cannot fix this yourself.
+2. **Wrong URL** — query URL in the config → empty table with no obvious error.
+3. **Wrong database** — `database =>` must match **your** `ADXTrainingDB_<login>`.
+4. **Wait 2–5 minutes** after sudo/SSH activity before `LogstashHostLogs | count` looks wrong.
+5. **Real auth log** — tail `/var/log/secure`; do not use a fake `/tmp` file.
+6. **Do not commit** the client secret or paste it in chat.
+7. **Sudo denied** — Linux password at prompt; if not in sudoers, trainer runs `grant_sudo_lab_users.sh`.
 
 ## ADX
 

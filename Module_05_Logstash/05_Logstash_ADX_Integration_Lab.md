@@ -6,7 +6,7 @@
 
 **KQL files:** `assets/module_05/`.
 
-**Setup:** read `00_Day5_How_We_Work.md` first. Logstash runs on the **shared Linux lab VM**, not on the VS Code host alone.
+**Setup:** read `00_Day5_How_We_Work.md` first. All steps below run in **lab VS Code** (same host as Days 1–4).
 
 ---
 
@@ -58,7 +58,7 @@ flowchart TB
 
 | Piece | Detail |
 |-------|--------|
-| Auth log | `/var/log/secure` (Amazon Linux) or `/var/log/auth.log` (Debian/Ubuntu) |
+| Auth log | `/var/log/secure` (Amazon Linux — requires rsyslog running) |
 | Logstash binary | `/usr/share/logstash/bin/logstash` |
 | Kusto plugin | `logstash-output-kusto` (install via plugin manager) |
 | Entra app | `logstash-adx-ingestor` (App ID `afed2047-fb94-41bd-bee5-e8c5b84fa1b8`, Tenant `05f46730-30d9-47bc-b103-d316ee58a3f5`) |
@@ -98,7 +98,8 @@ Logstash tails `/var/log/secure`. That file fills when **real OS actions** happe
 Check that lines exist **before** starting Logstash:
 
 ```bash
-sudo tail -n 10 /var/log/secure 2>/dev/null || sudo tail -n 10 /var/log/auth.log
+ls -l /var/log/secure
+sudo tail -n 10 /var/log/secure
 ```
 
 You must see recent syslog-formatted lines. If the file is completely empty, run `sudo true` a few times to seed it.
@@ -191,13 +192,13 @@ You must see:
 
 ## Step 2 — Install Logstash (if needed), kusto plugin, prep directories
 
-On the **Linux lab VM** (see `00_Day5_How_We_Work.md`).
+In your **lab VS Code** terminal (same host as Days 1–4).
 
 ### Goal
 
-Confirm Logstash is present (install it if the VM is fresh), install the `logstash-output-kusto` plugin, confirm `/var/log/secure` is readable, and create the staging directories the plugin needs.
+Confirm Logstash and `/var/log/secure` are ready, install the `logstash-output-kusto` plugin if needed, and create staging directories.
 
-The shared lab VM may not have Logstash pre-installed. The first student on a new VM runs the **Install Logstash** block below; everyone else checks the binary and moves on.
+Logstash is usually already installed at `/usr/share/logstash`. On Amazon Linux 2023, **`/var/log/secure` only exists if `rsyslog` is running** — if the file is missing, tell the trainer (they run `prepare_logstash_vscode_host.sh` once before class).
 
 ### Why a staging directory?
 
@@ -236,13 +237,22 @@ sudo yum install -y logstash
 
 Install takes a few minutes and needs outbound HTTPS from the VM. Tell the trainer if `yum install` fails.
 
-**B — Auth log**
+**B — Auth log (`/var/log/secure`)**
 
 ```bash
-sudo tail -n 10 /var/log/secure 2>/dev/null || sudo tail -n 10 /var/log/auth.log
+ls -l /var/log/secure
+sudo tail -n 10 /var/log/secure
 ```
 
-You should see syslog lines (timestamp, hostname, process, message). If the file is empty, run `sudo true` a few times and tail again.
+You should see syslog lines (timestamp, hostname, process, message).
+
+| What you see | What to do |
+|--------------|------------|
+| `No such file or directory` | Tell the trainer — **rsyslog is not enabled** on this host yet. Do not install Logstash until `/var/log/secure` exists. |
+| File exists but empty | Run `sudo true` three times, then `sudo tail -n 10 /var/log/secure` again. |
+| Permission denied | Use `sudo tail`, not plain `tail`. |
+
+Amazon Linux does **not** use `/var/log/auth.log` (that is Debian/Ubuntu). If `secure` is missing, the fallback command in older docs will also fail — that is expected until the trainer enables rsyslog.
 
 **C — Kusto output plugin**
 
@@ -282,14 +292,15 @@ Configure with your **card** keys (`aws configure`, region `us-east-1`) — same
 
 - `/usr/share/logstash/bin/logstash --version` prints a version (8.x).
 - `bin/logstash-plugin list | grep kusto` shows `logstash-output-kusto`.
-- `sudo tail` on `/var/log/secure` (or `auth.log`) returns recent lines.
+- `sudo tail -n 10 /var/log/secure` returns recent lines.
 - `/tmp/kusto` and `/tmp/logstash-lab` exist.
 
 ### If something is wrong
 
 | Symptom | Fix |
 |---------|-----|
-| `logstash` not found after install | Use full path `/usr/share/logstash/bin/logstash`; confirm you are on the Linux lab VM, not VS Code |
+| `/var/log/secure` missing | Trainer runs `prepare_logstash_vscode_host.sh` — enables rsyslog |
+| `logstash` not found after install | Use `/usr/share/logstash/bin/logstash` |
 | `yum install logstash` fails (GPG / repo) | Re-run the `rpm --import` and repo file block; check VM has internet |
 | Plugin install fails (timeout) | Retry once; confirm HTTPS to `artifacts.elastic.co` and RubyGems is allowed |
 | `/var/log/secure` permission denied | Use `sudo tail …` |
@@ -302,7 +313,7 @@ Configure with your **card** keys (`aws configure`, region `us-east-1`) — same
 
 ## Step 3 — Pipeline configuration and start
 
-On the **Linux lab VM**.
+In **lab VS Code** terminal.
 
 ### Goal
 
@@ -312,7 +323,7 @@ Copy the example pipeline config, fill in the five connection values, and start 
 
 | Section | Key setting | Your value |
 |---------|------------|------------|
-| `input { file }` | `path` | `/var/log/secure` (or `/var/log/auth.log` on Debian/Ubuntu) |
+| `input { file }` | `path` | `/var/log/secure` |
 | `filter { grok }` | `ecs_compatibility => disabled` | Required — without this, Logstash 8 renames fields and ADX mapping fails |
 | `filter { date }` | `target => "LogTime"` | Writes the parsed timestamp into the `LogTime` column |
 | `output { kusto }` | `ingest_url` | `https://ingest-adxtrainaug26.centralindia.kusto.windows.net` |
@@ -333,13 +344,12 @@ aws ssm get-parameter --name /adx/lab/entra-secret --with-decryption \
 
 If `aws` is not set up on the lab VM, see Step 2E or run this from VS Code and copy the value across.
 
-2. Copy the example on the lab VM:
+2. Copy the example from the repo:
 
 ```bash
-cp /opt/adx-aws-training/assets/module_05/adx-pipeline.conf.example /tmp/logstash-lab/adx-pipeline.conf
+mkdir -p /tmp/logstash-lab
+cp ~/adx-aws-training/assets/module_05/adx-pipeline.conf.example /tmp/logstash-lab/adx-pipeline.conf
 ```
-
-If `/opt/adx-aws-training` is not on the lab VM, copy the file from VS Code or ask the trainer.
 
 3. Edit the config:
 
@@ -407,7 +417,7 @@ Leave Logstash running in this terminal. Open a **second terminal** for Step 4.
 
 ## Step 4 — Generate real auth activity (while Logstash runs)
 
-In a **second terminal on the same Linux lab VM** (Logstash still running in the first).
+Open a **second terminal tab** in lab VS Code (Logstash still running in the first).
 
 ### Goal
 
@@ -504,7 +514,8 @@ LogstashHostLogs
 
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|
-| `logstash: command not found` | Not installed on fresh lab VM | Lab Step 2A — Elastic yum repo + `sudo yum install -y logstash` |
+| `/var/log/secure` missing | rsyslog not enabled on VS Code host | Trainer: `prepare_logstash_vscode_host.sh` |
+| `tail: cannot open ... auth.log` | Wrong OS path — AL2023 uses `/var/log/secure` only | Enable rsyslog; do not use auth.log fallback |
 | `Plugin not found: logstash-output-kusto` | Plugin not installed | Step 2C — `sudo bin/logstash-plugin install logstash-output-kusto` |
 | `LogstashHostLogs` does not exist | Step 1 not run | Run `create_tables.kql` in the correct database |
 | Table exists but count stays 0 after 5+ min | Entra grant missing OR wrong ingest URL | Check principals; confirm URL starts with `https://ingest-` |

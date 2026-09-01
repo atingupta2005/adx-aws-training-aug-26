@@ -14,4 +14,4 @@
 ## Prerequisites
 
 - Modules 01–04 complete  
-- Lab VS Code + shared Linux lab VM (see `00_Day5_How_We_Work.md`)  
+- Lab VS Code host (see `00_Day5_How_We_Work.md`)
