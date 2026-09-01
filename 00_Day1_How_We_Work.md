@@ -35,6 +35,8 @@ ls Module_01_Amazon_S3 assets/module_01 assets/iam
 
 The course folder is already there. Do not `git clone` into this directory (it is not empty). If the folder is missing, tell the trainer.
 
+**Sudo:** Some labs use `sudo`. When prompted, enter your **Linux / IDE password** from the access card (not your AWS console password). If you see *is not in the sudoers file*, tell the trainer — they run a one-time fix on the lab server.
+
 3. AWS console: https://410232017221.signin.aws.amazon.com/console — sign in as **IAM user** `u01` … `u06`, region **us-east-1**.
 4. Configure the CLI in **your** terminal (keys from the card):
 

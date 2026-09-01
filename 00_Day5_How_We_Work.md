@@ -81,6 +81,7 @@ The Linux lab VM is **shared**. One Logstash at a time.
 5. **Wait 2–5 minutes** after sudo/SSH activity before `LogstashHostLogs | count` looks wrong.
 6. **Real auth log** — tail `/var/log/secure`; do not point the lab pipeline at a fake `/tmp` file.
 7. **Do not commit** the client secret or paste it in chat.
+8. **Sudo denied** — use Linux password at prompt; if not in sudoers, trainer runs `grant_sudo_lab_users.sh`.
 
 ## ADX
 

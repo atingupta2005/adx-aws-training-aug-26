@@ -296,6 +296,7 @@ Configure with your **card** keys (`aws configure`, region `us-east-1`) — same
 | Auth log completely empty | `sudo true` several times, then re-check |
 | `aws: command not found` on lab VM | Install with `sudo dnf install -y awscli`, or fetch the secret from VS Code |
 | `AccessDenied` on SSM | Use your card IAM user (`u01`…`u06`), not a reader user |
+| `u01 is not in the sudoers file` | Tell the trainer — run `grant_sudo_lab_users.sh` on this VM |
 
 ---
 
