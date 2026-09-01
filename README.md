@@ -10,4 +10,4 @@ Courseware for ADX + AWS labs. Login: `u01`–`u06`. Database: `ADXTrainingDB_<y
 
 GitHub: https://github.com/atingupta2005/adx-aws-training-aug-26
 
-This repo includes **Modules 01–03** only. Your trainer will issue later modules when the class reaches them.
+This repo includes **Modules 01–05** and **Logstash in-depth sessions** (`Logstash_In_Depth/`). Your trainer will issue Modules 06–08 when the class reaches them.

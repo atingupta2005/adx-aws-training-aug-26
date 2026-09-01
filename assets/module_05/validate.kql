@@ -1,0 +1,2 @@
+LogstashHostLogs | count
+LogstashHostLogs | take 10

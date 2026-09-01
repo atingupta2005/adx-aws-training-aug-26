@@ -1,0 +1,6 @@
+Aug 31 09:14:23 ip-10-0-1-42 sudo: student : TTY=pts/0 ; PWD=/home/student ; USER=root ; COMMAND=/usr/bin/ls /root
+Aug 31 09:14:45 ip-10-0-1-42 sshd[12345]: Accepted publickey for student from 203.0.113.10 port 44102 ssh2
+Aug 31 09:15:02 ip-10-0-1-42 sshd[12346]: Invalid user baduser from 127.0.0.1 port 44103
+Aug 31 09:15:03 ip-10-0-1-42 sshd[12346]: Connection closed by invalid user baduser 127.0.0.1 port 44103 [preauth]
+Aug 31 09:16:11 ip-10-0-1-42 su[12350]: FAILED su for root by student
+Aug 31 09:16:30 ip-10-0-1-42 sudo[12351]: student : TTY=pts/0 ; PWD=/home/student ; USER=root ; COMMAND=/usr/bin/true

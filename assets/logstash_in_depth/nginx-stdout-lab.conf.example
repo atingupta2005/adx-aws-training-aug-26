@@ -1,0 +1,32 @@
+# Session 04: web access lines (Module 05 web.log shape) — stdout only first.
+# Path points at course repo copy on the VM after git pull.
+
+input {
+  file {
+    path => "/home/*/adx-aws-training/assets/module_05/web.log"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+    codec => "plain"
+  }
+}
+
+filter {
+  grok {
+    ecs_compatibility => disabled
+    match => {
+      "message" => "%{TIMESTAMP_ISO8601:EventTime} %{IPORHOST:ClientIp} %{WORD:HttpMethod} %{URIPATH:RequestPath} %{NUMBER:StatusCode:int} %{NUMBER:Bytes:int}"
+    }
+    tag_on_failure => ["_grokparsefailure"]
+  }
+  date {
+    match => [ "EventTime", "ISO8601" ]
+    target => "LogTime"
+  }
+  mutate {
+    remove_field => [ "message", "@version", "host", "path", "event", "log" ]
+  }
+}
+
+output {
+  stdout { codec => rubydebug }
+}

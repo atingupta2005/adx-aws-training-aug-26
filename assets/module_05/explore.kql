@@ -1,0 +1,33 @@
+// Module 05 — explore Logstash host logs in ADX
+// Database: ADXTrainingDB_<your-login>
+// Prerequisite: LogstashHostLogs populated (wait 2–5 min after pipeline start).
+
+LogstashHostLogs | count
+LogstashHostLogs | getschema
+LogstashHostLogs | take 10
+
+LogstashHostLogs
+| summarize Events = count() by Hostname
+| order by Events desc
+
+LogstashHostLogs
+| summarize Events = count() by Process
+| order by Events desc
+
+LogstashHostLogs
+| order by LogTime desc
+| take 30
+| project LogTime, Hostname, Process, Pid, Message
+
+LogstashHostLogs
+| where Message contains "Failed" or Message contains "Accepted"
+| summarize Events = count() by Process
+| order by Events desc
+
+LogstashHostLogs
+| summarize Events = count() by bin(LogTime, 5m)
+| render timechart
+
+.show ingestion failures
+| where Table == "LogstashHostLogs"
+| take 10

@@ -1,0 +1,36 @@
+# Session 01–02: grok lab against a static sample file — stdout only (no ADX).
+# Copy to /tmp/logstash-lab/grok-stdout-lab.conf and edit the path if needed.
+
+input {
+  file {
+    path => "/tmp/logstash-lab/sample-auth-lines.log"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+    codec => "plain"
+  }
+}
+
+filter {
+  grok {
+    ecs_compatibility => disabled
+    match => {
+      "message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:Hostname} %{DATA:Process}(?:\[%{POSINT:Pid}\])?: %{GREEDYDATA:Message}"
+    }
+    tag_on_failure => ["_grokparsefailure"]
+  }
+  date {
+    match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+    target => "LogTime"
+  }
+  if ![Pid] {
+    mutate { add_field => { "Pid" => "0" } }
+  }
+  mutate {
+    convert => { "Pid" => "integer" }
+    remove_field => [ "message", "syslog_timestamp", "@version", "host", "path", "event", "log" ]
+  }
+}
+
+output {
+  stdout { codec => rubydebug }
+}

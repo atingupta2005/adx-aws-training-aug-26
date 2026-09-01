@@ -8,11 +8,9 @@ cd "$ROOT"
 BLOCKED=(
   'Instructor_Materials/'
   '_private_validation/'
-  'Module_05_Logstash/'
   'Module_06_Filebeat/'
   'Module_07_Metricbeat/'
   'Module_08_AWS_GuardDuty/'
-  'assets/module_05/'
   'assets/module_06/'
   'assets/module_07/'
   'assets/module_08/'

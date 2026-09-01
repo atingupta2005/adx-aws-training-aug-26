@@ -1,0 +1,44 @@
+input {
+  file {
+    path => "/var/log/secure"   # Amazon Linux lab VM. Debian/Ubuntu: /var/log/auth.log
+
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+    codec => "plain"
+  }
+}
+
+filter {
+  grok {
+    ecs_compatibility => disabled
+    match => {
+      "message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:Hostname} %{DATA:Process}(?:\[%{POSINT:Pid}\])?: %{GREEDYDATA:Message}"
+    }
+  }
+  date {
+    match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+    target => "LogTime"
+  }
+  if ![Pid] {
+    mutate {
+      add_field => { "Pid" => "0" }
+    }
+  }
+  mutate {
+    convert => { "Pid" => "integer" }
+    remove_field => [ "message", "syslog_timestamp", "@version", "host", "path", "event", "log" ]
+  }
+}
+
+output {
+  kusto {
+    path => "/tmp/kusto/%{+YYYY-MM-dd-HH-mm}.txt"  # plugin 2.x requires a time token; keep @timestamp
+    ingest_url => "https://ingest-<your_cluster_name>.<region>.kusto.windows.net"
+    app_id => "<your_client_id>"
+    app_key => "<your_client_secret>"
+    app_tenant => "<your_tenant_id>"
+    database => "ADXTrainingDB_<your-login>"
+    table => "LogstashHostLogs"
+    json_mapping => "LogstashHostLogsMapping"
+  }
+}

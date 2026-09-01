@@ -1,0 +1,20 @@
+.create table LogstashHostLogs (
+    LogTime: datetime,
+    Hostname: string,
+    Process: string,
+    Pid: int,
+    Message: string
+)
+
+.create table LogstashHostLogs ingestion json mapping 'LogstashHostLogsMapping'
+'['
+  '{"column":"LogTime","path":"$.LogTime","datatype":"datetime"},'
+  '{"column":"Hostname","path":"$.Hostname","datatype":"string"},'
+  '{"column":"Process","path":"$.Process","datatype":"string"},'
+  '{"column":"Pid","path":"$.Pid","datatype":"int"},'
+  '{"column":"Message","path":"$.Message","datatype":"string"}'
+']'
+
+.add database ['ADXTrainingDB_<your-login>'] ingestors ('aadapp=[CLIENT_ID];[TENANT_ID]') 'Logstash'
+.show database ['ADXTrainingDB_<your-login>'] principals
+// Example database name for login u01: ADXTrainingDB_u01

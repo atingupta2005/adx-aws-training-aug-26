@@ -3,22 +3,22 @@
 # =============================================================================
 # BEFORE EVERY PUSH: bash scripts/verify_student_push.sh
 #
-# Safe to commit (Day 1–2 student package):
-#   README.md, 00_*.md, Module_01–03/, assets/iam/, assets/module_01–03,
+# Safe to commit (student package):
+#   README.md, 00_*.md, Module_01–05/, Logstash_In_Depth/,
+#   assets/iam/, assets/module_01–05/, assets/logstash_in_depth/,
 #   assets/common/, assets/ingest_s3_to_adx.sh, scripts/verify_student_push.sh
 #
-# Keep local only until issued: Module_05–08, Instructor_Materials/,
+# Keep local only until issued: Module_06–08, Instructor_Materials/,
 # _private_validation/, *_Instructor.md, assets/REAL_VS_LAB_DATA.md (trainer)
 # Module_04 + assets/module_04 are issued to the student repo.
+# Module_05 + Logstash_In_Depth + assets/module_05 + assets/logstash_in_depth issued for Logstash week.
 # =============================================================================
 
 # --- Later modules — local trainer copy only; do not commit ---
 # Each blocked folder may have its own .gitignore (* + !.gitignore).
-Module_05_Logstash/
 Module_06_Filebeat/
 Module_07_Metricbeat/
 Module_08_AWS_GuardDuty/
-assets/module_05/
 assets/module_06/
 assets/module_07/
 assets/module_08/
