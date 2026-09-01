@@ -334,6 +334,73 @@ Copy the example pipeline config, fill in the five connection values, and start 
 | `output { kusto }` | `database` | `ADXTrainingDB_<your-login>` |
 | `output { kusto }` | `path` | `/tmp/kusto/%{+YYYY-MM-dd-HH-mm}.txt` |
 
+### Configuration explained (simple English)
+
+Logstash has three stages: **read → shape → send**.
+
+```text
+/var/log/secure  →  input  →  filter  →  output (kusto)  →  ADX table
+```
+
+#### Input — where data comes from
+
+| Setting | Value | Why |
+|---------|-------|-----|
+| `path` | `/var/log/secure` | Amazon Linux writes SSH logins, sudo, and PAM events here. (Debian/Ubuntu use `/var/log/auth.log` instead.) |
+| `start_position => "beginning"` | Read from the top of the file | On first run you see existing log lines quickly — good for the lab. |
+| `sincedb_path => "/dev/null"` | Do not remember where we stopped | Normally Logstash remembers the last line read so restarts skip old data. `/dev/null` discards that memory — every restart re-reads from the beginning. Fine for a lab; in production you would use a real sincedb file. |
+| `codec => "plain"` | Each line is plain text | Puts the whole line into a field called `message` for the filter to parse. |
+
+**Why `sudo bin/logstash`?** `/var/log/secure` is owned by root (`600`). Only root (or `sudo`) can read it.
+
+#### Filter — turn one text line into ADX columns
+
+| Setting | Why |
+|---------|-----|
+| `grok { … }` | Pattern matcher. Splits a syslog line like `Sep 1 14:13:27 host sudo[1234]: …` into named fields. |
+| `ecs_compatibility => disabled` | Logstash 8 defaults to Elastic Common Schema and renames fields. ADX expects exact column names from your table mapping — so we turn ECS off. |
+| `match => { "message" => "…" }` | The regex that extracts timestamp, hostname, process name, optional PID, and the rest as `Message`. |
+| `date { … target => "LogTime" }` | Syslog only has `Sep 1 14:13:27` (no year). Converts that into a real datetime in the `LogTime` column ADX expects. |
+| `if ![Pid] { add_field => { "Pid" => "0" } }` | Some lines have no `[1234]` PID bracket. ADX `Pid` is an integer — use `0` when missing. |
+| `convert => { "Pid" => "integer" }` | Grok gives a string; ADX expects an integer. |
+| `remove_field => [ … ]` | Drop Logstash-internal fields so only ADX columns are sent. **Do not remove `@timestamp`** — the kusto output `path` still needs it (see below). |
+
+After filtering, each event looks roughly like:
+
+```json
+{ "LogTime": "…", "Hostname": "…", "Process": "sudo", "Pid": 1234, "Message": "…" }
+```
+
+That shape must match your ADX table and `LogstashHostLogsMapping` from Step 1.
+
+#### Output — send to Azure Data Explorer
+
+The kusto plugin (v2.x) does **not** stream each event directly to ADX. It:
+
+1. Writes parsed events as JSON lines into a **local staging file** under `/tmp/kusto/`
+2. Closes that file when the minute rolls over (or on shutdown)
+3. Uploads the closed file to ADX as one batch (queued ingest)
+
+| Setting | Why |
+|---------|-----|
+| `path => "/tmp/kusto/%{+YYYY-MM-dd-HH-mm}.txt"` | Staging directory and filename. The `%{+YYYY-MM-dd-HH-mm}` part is a **time token** — e.g. `2026-09-01-14-13.txt`. The plugin uses it to rotate files every minute and upload the previous file. **Requires `@timestamp` on each event** — if you remove `@timestamp` in the filter, the path breaks and nothing reaches ADX. |
+| `ingest_url` | **Ingest** endpoint (`https://ingest-…`), not the query URL you use in the portal. Ingest accepts uploaded batches; query is for KQL. |
+| `app_id` / `app_key` / `app_tenant` | Entra ID app credentials. ADX checks whether this app is allowed to ingest into your database. |
+| `database` | Your personal database, e.g. `ADXTrainingDB_u06` — keeps each student isolated. |
+| `table => "LogstashHostLogs"` | Target table you created in Step 1. |
+| `json_mapping => "LogstashHostLogsMapping"` | Tells ADX how JSON field names map to table columns. |
+
+**Why 2–5 minutes delay?** Queued ingest: write file → upload to blob → ADX processes the queue. That delay is normal, not a bug.
+
+#### End-to-end example (one `sudo true`)
+
+1. You run `sudo true` → Linux writes a line to `/var/log/secure`
+2. Logstash **input** reads that line
+3. **grok** + **date** turn it into `LogTime`, `Process`, `Message`, etc.
+4. **kusto output** appends JSON to `/tmp/kusto/2026-09-01-14-13.txt`
+5. At the minute boundary, the plugin **uploads** the file to ADX
+6. In the portal: `LogstashHostLogs | order by LogTime desc | take 10`
+
 ### Do this exactly
 
 1. Get the client secret (paste into the conf only — do not commit). On the lab VM if `aws` works; otherwise from VS Code:
