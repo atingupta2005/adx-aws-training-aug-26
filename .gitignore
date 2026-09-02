@@ -17,8 +17,6 @@
 # --- Later modules / trainer-only — local copy only; do not commit ---
 # Each blocked folder may have its own .gitignore (* + !.gitignore).
 Logstash_In_Depth/
-Module_06_Filebeat/
-Module_07_Metricbeat/
 Module_08_AWS_GuardDuty/
 assets/module_06/
 assets/module_07/
