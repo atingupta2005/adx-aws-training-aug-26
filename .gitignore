@@ -18,8 +18,6 @@
 # Each blocked folder may have its own .gitignore (* + !.gitignore).
 Logstash_In_Depth/
 Module_08_AWS_GuardDuty/
-assets/module_06/
-assets/module_07/
 assets/module_08/
 
 # --- Trainer / private (answer keys, coaching, audits) ---

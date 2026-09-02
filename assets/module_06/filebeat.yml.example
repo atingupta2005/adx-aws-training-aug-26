@@ -1,0 +1,36 @@
+filebeat.inputs:
+- type: filestream
+  id: linux-lab-syslog
+  enabled: true
+  paths:
+    - /var/log/secure
+  fields:
+    ServerType: "Linux"
+  fields_under_root: true
+
+- type: filestream
+  id: apache-lab-access
+  enabled: true
+  paths:
+    - /var/log/httpd/access_log
+  fields:
+    ServerType: "Apache"
+  fields_under_root: true
+
+- type: filestream
+  id: nginx-lab-access
+  enabled: true
+  paths:
+    - /var/log/nginx/access.log
+  fields:
+    ServerType: "NGINX"
+  fields_under_root: true
+
+output.logstash:
+  hosts: ["localhost:5044"]
+
+# Ensure output.elasticsearch is completely commented out or removed
+# Debian/Ubuntu substitutions:
+#   Linux: /var/log/auth.log
+#   Apache: /var/log/apache2/access.log
+# Default paths above are Amazon Linux (/var/log/secure, /var/log/httpd/access_log).

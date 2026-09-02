@@ -1,0 +1,59 @@
+input {
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+  if [ServerType] == "Linux" {
+    grok {
+      ecs_compatibility => disabled
+      match => {
+        "message" => "%{SYSLOGTIMESTAMP:Timestamp} %{SYSLOGHOST:syslog_host} %{DATA:Method}(?:\[%{POSINT:pid}\])?: %{GREEDYDATA:URI}"
+      }
+    }
+    grok {
+      ecs_compatibility => disabled
+      match => { "URI" => "from %{IPORHOST:ClientIP}" }
+      tag_on_failure => []
+    }
+    if ![ClientIP] {
+      mutate {
+        add_field => { "ClientIP" => "%{syslog_host}" }
+      }
+    }
+    mutate {
+      add_field => { "StatusCode" => "0" }
+      convert => { "StatusCode" => "integer" }
+    }
+    date {
+      match => [ "Timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+      target => "LogTime"
+    }
+  } else {
+    grok {
+      ecs_compatibility => disabled
+      match => { "message" => "%{IPORHOST:ClientIP} - - \[%{HTTPDATE:Timestamp}\] \"%{WORD:Method} %{URIPATHPARAM:URI} HTTP/%{NUMBER}\" %{NUMBER:StatusCode:int} (?:%{NUMBER:Bytes:int}|-)(?: \"%{DATA:referrer}\" \"%{DATA:useragent}\")?" }
+    }
+    date {
+      match => [ "Timestamp", "dd/MMM/yyyy:HH:mm:ss Z" ]
+      target => "LogTime"
+    }
+  }
+  mutate {
+    remove_field => [ "message", "Timestamp", "syslog_host", "pid", "Bytes", "referrer", "useragent", "@version", "tags", "agent", "ecs", "host", "log", "input", "event", "fields" ]
+  }
+}
+
+output {
+  kusto {
+    path => "/tmp/kusto-beats/%{+YYYY-MM-dd-HH-mm}.txt"  # plugin 2.x requires a time token; keep @timestamp
+    ingest_url => "https://ingest-<your_cluster_name>.<region>.kusto.windows.net"
+    app_id => "<your_client_id>"
+    app_key => "<your_client_secret>"
+    app_tenant => "<your_tenant_id>"
+    database => "ADXTrainingDB_<your-login>"
+    table => "WebServerLogs"
+    json_mapping => "WebServerLogsMapping"
+  }
+}

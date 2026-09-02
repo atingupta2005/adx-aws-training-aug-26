@@ -1,0 +1,36 @@
+// Module 07 — explore Metricbeat system metrics in ADX
+// Database: ADXTrainingDB_<your-login>
+
+SystemMetrics | count
+SystemMetrics | getschema
+
+SystemMetrics
+| summarize Rows = count() by Metricset
+| order by Rows desc
+
+SystemMetrics
+| where isnotnull(CPU_User_Pct)
+| extend UserPct = CPU_User_Pct * 100
+| summarize AvgUser = avg(UserPct), MaxUser = max(UserPct) by Hostname
+
+SystemMetrics
+| where isnotnull(Mem_Used_Pct)
+| extend UsedPct = Mem_Used_Pct * 100
+| summarize AvgUsed = avg(UsedPct) by Hostname
+
+SystemMetrics
+| where isnotnull(CPU_User_Pct)
+| extend UserPct = CPU_User_Pct * 100
+| summarize AvgUser = avg(UserPct) by bin(LogTime, 1m)
+| render timechart
+
+SystemMetrics
+| where isnotnull(FS_Used_Pct)
+| extend UsedPct = FS_Used_Pct * 100
+| project LogTime, Hostname, MountPoint, UsedPct
+| order by UsedPct desc
+| take 20
+
+.show ingestion failures
+| where Table == "SystemMetrics"
+| take 10

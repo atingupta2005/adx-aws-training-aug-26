@@ -1,0 +1,4 @@
+WebServerLogs | count
+// Linux vs Apache vs NGINX
+WebServerLogs | summarize Hits = count() by ServerType
+WebServerLogs | take 20

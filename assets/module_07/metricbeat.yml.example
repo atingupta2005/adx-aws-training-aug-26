@@ -1,0 +1,12 @@
+# Metricbeat main config fragment for the ADX lab.
+# Disable output.elasticsearch. Ship to Logstash on 5045.
+
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+output.logstash:
+  hosts: ["localhost:5045"]
+
+# output.elasticsearch:
+#   hosts: ["localhost:9200"]

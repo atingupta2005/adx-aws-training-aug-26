@@ -1,0 +1,20 @@
+2026-07-31T14:00:01Z labhost sshd: Accepted password for alice from 192.168.1.20 port 51234
+2026-07-31T14:00:45Z labhost sshd: Accepted publickey for bob from 192.168.1.21 port 51301
+2026-07-31T14:01:15Z labhost sudo: pam_unix(sudo:session): session opened for user root
+2026-07-31T14:01:40Z labhost sudo: alice : TTY=pts/0 ; PWD=/home/alice ; USER=root ; COMMAND=/bin/systemctl status nginx
+2026-07-31T14:02:40Z labhost systemd: Started Session 42 of user alice
+2026-07-31T14:03:05Z labhost sshd: Failed password for invalid user admin from 203.0.113.50 port 44321
+2026-07-31T14:03:20Z labhost sshd: Failed password for invalid user admin from 203.0.113.50 port 44322
+2026-07-31T14:03:35Z labhost sshd: Failed password for invalid user root from 203.0.113.50 port 44323
+2026-07-31T14:04:22Z labhost cron: (root) CMD (/usr/local/bin/backup.sh)
+2026-07-31T14:04:50Z labhost cron: (alice) CMD (/usr/local/bin/report.sh)
+2026-07-31T14:05:10Z labhost kernel: Out of memory: Kill process 9981 (java)
+2026-07-31T14:05:55Z labhost kernel: TCP: request_sock_TCP: Possible SYN flooding on port 443
+2026-07-31T14:06:30Z labhost systemd: Started Daily apt download activities
+2026-07-31T14:07:05Z labhost sshd: Accepted password for alice from 10.0.0.55 port 22022
+2026-07-31T14:07:40Z labhost sudo: pam_unix(sudo:session): session closed for user root
+2026-07-31T14:08:15Z labhost systemd: Reloading nginx.service
+2026-07-31T14:08:50Z labhost nginx: configuration file /etc/nginx/nginx.conf test is successful
+2026-07-31T14:09:20Z labhost sshd: Disconnected from user bob 192.168.1.21 port 51301
+2026-07-31T14:10:00Z labhost audit: USER_AUTH pid=2201 uid=0 result=fail
+2026-07-31T14:10:35Z labhost audit: USER_AUTH pid=2205 uid=0 result=success

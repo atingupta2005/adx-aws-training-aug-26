@@ -1,0 +1,73 @@
+# Reference Logstash pipeline for Metricbeat (Elastic 8.x system module) → ADX.
+# Lab listens on 5045. Keep convert directives so Kusto numeric columns ingest cleanly.
+# Each metricset is a separate event; many ADX columns are null on any given row.
+# Stop Filebeat and any Logstash on 5044 before starting this pipeline.
+# Reuse Entra app logstash-adx-ingestor (Module 05) with Database Ingestor rights.
+# Requires ADX mapping SystemMetricsMapping and json_mapping below.
+
+input {
+  beats {
+    port => 5045
+  }
+}
+
+filter {
+  if [metricset][name] == "cpu" {
+    mutate {
+      add_field => {
+        "CPU_User_Pct" => "%{[system][cpu][user][pct]}"
+        "CPU_System_Pct" => "%{[system][cpu][system][pct]}"
+      }
+    }
+  }
+  if [metricset][name] == "memory" {
+    mutate {
+      add_field => {
+        "Memory_Used_Bytes" => "%{[system][memory][actual][used][bytes]}"
+        "Memory_Total_Bytes" => "%{[system][memory][total]}"
+        "Memory_Used_Pct" => "%{[system][memory][actual][used][pct]}"
+      }
+    }
+  }
+  if [metricset][name] == "filesystem" {
+    mutate {
+      add_field => {
+        "Disk_Used_Pct" => "%{[system][filesystem][used][pct]}"
+      }
+    }
+  }
+
+  date {
+    match => [ "@timestamp", "ISO8601" ]
+    target => "MetricTime"
+  }
+
+  mutate {
+    add_field => { "HostName" => "%{[host][name]}" }
+    convert => {
+      "CPU_User_Pct" => "float"
+      "CPU_System_Pct" => "float"
+      "Memory_Used_Bytes" => "integer"
+      "Memory_Total_Bytes" => "integer"
+      "Memory_Used_Pct" => "float"
+      "Disk_Used_Pct" => "float"
+    }
+  }
+
+  mutate {
+    remove_field => [ "@version", "tags", "agent", "ecs", "host", "metricset", "event", "system", "fields", "input", "service", "cloud" ]
+  }
+}
+
+output {
+  kusto {
+    path => "/tmp/kusto-metrics/%{+YYYY-MM-dd-HH-mm}.txt"  # plugin 2.x requires a time token; keep @timestamp
+    ingest_url => "https://ingest-<your_cluster_name>.<region>.kusto.windows.net"
+    app_id => "<your_client_id>"
+    app_key => "<your_client_secret>"
+    app_tenant => "<your_tenant_id>"
+    database => "ADXTrainingDB_<your-login>"
+    table => "SystemMetrics"
+    json_mapping => "SystemMetricsMapping"
+  }
+}

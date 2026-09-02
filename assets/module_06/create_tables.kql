@@ -1,0 +1,18 @@
+.create table WebServerLogs (
+    LogTime: datetime,
+    ServerType: string,
+    ClientIP: string,
+    Method: string,
+    URI: string,
+    StatusCode: int
+)
+
+.create table WebServerLogs ingestion json mapping 'WebServerLogsMapping'
+'['
+  '{"column":"LogTime","path":"$.LogTime","datatype":"datetime"},'
+  '{"column":"ServerType","path":"$.ServerType","datatype":"string"},'
+  '{"column":"ClientIP","path":"$.ClientIP","datatype":"string"},'
+  '{"column":"Method","path":"$.Method","datatype":"string"},'
+  '{"column":"URI","path":"$.URI","datatype":"string"},'
+  '{"column":"StatusCode","path":"$.StatusCode","datatype":"int"}'
+']'

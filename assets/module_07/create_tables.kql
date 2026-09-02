@@ -1,0 +1,22 @@
+.create table SystemMetrics (
+    MetricTime: datetime,
+    HostName: string,
+    CPU_User_Pct: real,
+    CPU_System_Pct: real,
+    Memory_Used_Bytes: long,
+    Memory_Total_Bytes: long,
+    Memory_Used_Pct: real,
+    Disk_Used_Pct: real
+)
+
+.create-or-alter table SystemMetrics ingestion json mapping 'SystemMetricsMapping'
+'['
+  '{"column":"MetricTime","path":"$.MetricTime","datatype":"datetime"},'
+  '{"column":"HostName","path":"$.HostName","datatype":"string"},'
+  '{"column":"CPU_User_Pct","path":"$.CPU_User_Pct","datatype":"real"},'
+  '{"column":"CPU_System_Pct","path":"$.CPU_System_Pct","datatype":"real"},'
+  '{"column":"Memory_Used_Bytes","path":"$.Memory_Used_Bytes","datatype":"long"},'
+  '{"column":"Memory_Total_Bytes","path":"$.Memory_Total_Bytes","datatype":"long"},'
+  '{"column":"Memory_Used_Pct","path":"$.Memory_Used_Pct","datatype":"real"},'
+  '{"column":"Disk_Used_Pct","path":"$.Disk_Used_Pct","datatype":"real"}'
+']'

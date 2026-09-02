@@ -1,0 +1,1298 @@
+[
+  {
+    "@timestamp": "2026-07-31T12:00:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.08
+        },
+        "system": {
+          "pct": 0.04
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:00:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 3435973836,
+            "pct": 0.4
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:00:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.55
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:01:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.11
+        },
+        "system": {
+          "pct": 0.05
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:01:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 3693671874,
+            "pct": 0.43
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:01:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.57
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:02:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.14
+        },
+        "system": {
+          "pct": 0.06
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:02:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 3951369912,
+            "pct": 0.46
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:02:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.59
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:03:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.17
+        },
+        "system": {
+          "pct": 0.07
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:03:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 4209067950,
+            "pct": 0.49
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:03:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.61
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:04:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.2
+        },
+        "system": {
+          "pct": 0.08
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:04:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 4466765987,
+            "pct": 0.52
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:04:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.63
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:05:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.23
+        },
+        "system": {
+          "pct": 0.09
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:05:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 4724464025,
+            "pct": 0.55
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:05:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.65
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:06:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.26
+        },
+        "system": {
+          "pct": 0.1
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:06:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 4982162063,
+            "pct": 0.58
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:06:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.67
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:07:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.29
+        },
+        "system": {
+          "pct": 0.11
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:07:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 5239860101,
+            "pct": 0.61
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:07:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-01"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.69
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:00:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.1
+        },
+        "system": {
+          "pct": 0.04
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:00:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 3865470566,
+            "pct": 0.45
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:00:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.56
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:01:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.13
+        },
+        "system": {
+          "pct": 0.05
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:01:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 4123168604,
+            "pct": 0.48
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:01:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.58
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:02:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.16
+        },
+        "system": {
+          "pct": 0.06
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:02:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 4380866641,
+            "pct": 0.51
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:02:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.6
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:03:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.19
+        },
+        "system": {
+          "pct": 0.07
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:03:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 4638564679,
+            "pct": 0.54
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:03:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.62
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:04:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.22
+        },
+        "system": {
+          "pct": 0.08
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:04:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 4896262717,
+            "pct": 0.57
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:04:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.64
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:05:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.25
+        },
+        "system": {
+          "pct": 0.09
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:05:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 5153960755,
+            "pct": 0.6
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:05:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.66
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:06:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.28
+        },
+        "system": {
+          "pct": 0.1
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:06:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 5411658792,
+            "pct": 0.63
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:06:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.68
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:07:00.000Z",
+    "metricset": {
+      "name": "cpu",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.cpu"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "cpu": {
+        "user": {
+          "pct": 0.31
+        },
+        "system": {
+          "pct": 0.11
+        },
+        "idle": {
+          "pct": 0.8
+        },
+        "iowait": {
+          "pct": 0.01
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:07:00.000Z",
+    "metricset": {
+      "name": "memory",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.memory"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "memory": {
+        "total": 8589934592,
+        "actual": {
+          "used": {
+            "bytes": 5669356830,
+            "pct": 0.66
+          }
+        }
+      }
+    }
+  },
+  {
+    "@timestamp": "2026-07-31T12:07:00.000Z",
+    "metricset": {
+      "name": "filesystem",
+      "module": "system"
+    },
+    "event": {
+      "module": "system",
+      "dataset": "system.filesystem"
+    },
+    "host": {
+      "name": "lab-host-02"
+    },
+    "system": {
+      "filesystem": {
+        "mount_point": "/",
+        "type": "xfs",
+        "total": 107374182400,
+        "available": 53687091200,
+        "used": {
+          "bytes": 53687091200,
+          "pct": 0.7
+        }
+      }
+    }
+  }
+]

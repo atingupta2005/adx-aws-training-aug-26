@@ -1,0 +1,13 @@
+# Elastic 8.x system module — lab metricsets and 10s period.
+# drop_event removes noisy synthetic mounts before they reach Logstash/ADX.
+
+- module: system
+  period: 10s
+  metricsets:
+    - cpu
+    - memory
+    - filesystem
+  enabled: true
+  processors:
+    - drop_event.when.regexp:
+        system.filesystem.mount_point: '^/(sys|proc|dev|etc|host|lib)($|/)'

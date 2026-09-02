@@ -1,0 +1,8 @@
+SystemMetrics | take 20
+// Separate metricsets — do not avg CPU across memory-only rows
+SystemMetrics
+| summarize
+    CpuRows = countif(isnotnull(CPU_User_Pct)),
+    MemoryRows = countif(isnotnull(Memory_Used_Pct)),
+    DiskRows = countif(isnotnull(Disk_Used_Pct)),
+    TotalRows = count()
