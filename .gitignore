@@ -8,8 +8,9 @@
 #   assets/iam/, assets/module_01–05/, assets/logstash_in_depth/,
 #   assets/common/, assets/ingest_s3_to_adx.sh, scripts/verify_student_push.sh
 #
-# Keep local only until issued: Logstash_In_Depth/, Module_06–08, Instructor_Materials/,
-# _private_validation/, *_Instructor.md, assets/REAL_VS_LAB_DATA.md (trainer)
+# Keep local only until issued: Logstash_In_Depth/, Module_06–08,
+# Appendix_Azure_Lighthouse/, Instructor_Materials/, _private_validation/,
+# *_Instructor.md, assets/REAL_VS_LAB_DATA.md (trainer)
 # Module_04 + assets/module_04 are issued to the student repo.
 # Module_05 + assets/module_05 issued for Logstash week.
 # =============================================================================
@@ -19,6 +20,8 @@
 Logstash_In_Depth/
 Module_08_AWS_GuardDuty/
 assets/module_08/
+Appendix_Azure_Lighthouse/
+assets/appendix_lighthouse/
 
 # --- Trainer / private (answer keys, coaching, audits) ---
 Instructor_Materials/
