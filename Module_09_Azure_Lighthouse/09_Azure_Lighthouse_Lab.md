@@ -14,7 +14,7 @@ You do **not** need to build a full two-tenant production MSP setup yourself.
 | Activity | Who |
 |----------|-----|
 | Portal walk — Service providers / delegations blades | Everyone |
-| Read the offer template (Bicep) and name the pieces | Everyone |
+| Name the pieces of an offer (no templates to deploy) | Everyone |
 | Optional live **My customers** demo (needs a second tenant) | Trainer shows; you watch |
 
 Two tenants are often awkward in a classroom. The walk below still proves the **concept**. If the trainer has a managing + customer pair ready, they can show the end state on screen.
@@ -22,7 +22,7 @@ Two tenants are often awkward in a classroom. The walk below still proves the **
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
 flowchart LR
-  A["1 Portal walk<br/>(customer side)"] --> B["2 Read the offer<br/>(contract card)"]
+  A["1 Portal walk<br/>(customer side)"] --> B["2 Offer pieces<br/>(who / roles / scope)"]
   B --> C["3 Trainer demo<br/>(optional)"]
   C --> D["4 Discussion"]
   style A fill:#0078D4,stroke:#005A9E,color:#fff
@@ -53,27 +53,23 @@ You can find the Service providers / Lighthouse area and explain it is the **cus
 
 ---
 
-## Step 2 — Read the offer template (contract card)
+## Step 2 — What an offer contains (contract card)
 
 ### Why
 
-An offer answers: *which partner tenant*, *which principals*, *which Azure role*, *on what scope (when assigned)*.
+An offer answers: *which partner tenant*, *which people/groups*, *which Azure role*, and (when assigned) *on what scope*.
 
-### Do this
+You do **not** need to write Bicep or ARM for this module. Learn the pieces by name:
 
-Open `assets/module_09/lighthouse-rg-reader.bicep` in the course folder (VS Code or any editor).
+| Piece | Meaning |
+|-------|---------|
+| Managing tenant ID | Partner Entra tenant |
+| Principal | User, group, or service principal in the **partner** tenant (prefer a group) |
+| Azure role | e.g. **Reader** (list/view only) |
+| Offer (registration definition) | Packages tenant + principals + roles |
+| Assignment | Customer **accepts** that offer on a subscription or resource group |
 
-Find and name these parameters/fields:
-
-| In the file | Meaning |
-|-------------|---------|
-| `managedByTenantId` | Partner (managing) Entra tenant ID |
-| `principalId` | User/group/SP **Object ID** in the partner tenant |
-| `roleDefinitionId` | Azure RBAC role (default = Reader) |
-| `registrationDefinitions` | The **offer** |
-| `registrationAssignments` | The **acceptance** on the RG where you deploy |
-
-Reader role GUID used in the template: `acdd72a7-3385-48ef-bd42-f606fba81ae7`
+Built-in Reader role ID (if you ever see it in docs): `acdd72a7-3385-48ef-bd42-f606fba81ae7`
 
 ### Checkpoint
 
@@ -126,5 +122,5 @@ Answer out loud (or in chat):
 | Question | Pointer |
 |----------|---------|
 | I don’t see My customers | That blade is on the **managing** tenant — trainer demo or Concepts diagram |
-| Should I deploy the Bicep? | Not required for class credit; optional only if the trainer runs a prepared two-tenant demo |
+| Should I deploy anything? | Not required — this module is portal + concept; optional trainer demo only |
 | Will this break ADX? | Not if you only browse portals; never assign Owner on the ADX RG in class |

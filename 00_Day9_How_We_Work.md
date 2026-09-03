@@ -6,7 +6,7 @@ Same Entra / Azure portal access as ADX labs (Pay-As-You-Go). No AWS VM required
 
 ```bash
 cd ~/adx-aws-training
-ls Module_09_Azure_Lighthouse assets/module_09
+ls Module_09_Azure_Lighthouse
 ```
 
 Open the **Azure portal** signed into the training directory.
@@ -15,11 +15,11 @@ Open the **Azure portal** signed into the training directory.
 
 1. `09_Azure_Lighthouse_Primer.md`  
 2. `09_Azure_Lighthouse_Concepts.md`  
-3. `09_Azure_Lighthouse_Lab.md` — portal walk + offer template + optional trainer demo  
+3. `09_Azure_Lighthouse_Lab.md` — portal walk + offer vocabulary + optional trainer demo  
 4. `09_Exercises.md`
 
 ## Remember
 
 - Lighthouse = **cross-tenant Azure RBAC by delegation** (not guests, not Logstash app auth)  
-- Practical is **portal + discussion**; full two-tenant deploy is optional trainer demo  
+- Practical is **portal + discussion** — no Bicep/ARM labs  
 - Prefer **Reader** on a demo RG — never practice Owner on the ADX resource group
