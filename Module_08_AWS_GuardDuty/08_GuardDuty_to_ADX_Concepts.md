@@ -113,13 +113,34 @@ Firehose writes EventBridge records to S3. Each record looks conceptually like t
 }
 ```
 
+### Why wrap the finding at all?
+
+Think of two jobs:
+
+1. **Routing** — EventBridge must decide *which rules fire* and *where to send* the event, for **many** AWS services, not only GuardDuty.  
+2. **Security content** — GuardDuty must keep a rich, finding-specific schema (`type`, `severity`, `resource`, …).
+
+The envelope separates those jobs:
+
+| Layer | Job | Fields |
+|-------|-----|--------|
+| Outer envelope | Standard routing metadata every EventBridge consumer understands | `source`, `detail-type`, `time`, `account`, `region`, outer `id` |
+| Inner `detail` | The actual GuardDuty finding body | `id`, `type`, `severity`, `title`, `resource`, … |
+
+**Practical benefits**
+
+- Rules can match `source = aws.guardduty` without understanding every finding type.  
+- The same Firehose / S3 / Lambda pattern can later accept other `source` values with the same outer shape.  
+- GuardDuty can evolve its finding schema inside `detail` without breaking the bus contract.  
+- You always know where “ops metadata” ends and “security payload” begins — which is exactly why ADX maps **`$.detail.*`**.
+
+**Classroom pitfall:** outer `$.id` is *not* the finding id. Using it in the mapping leaves `FindingId` blank even though ingest looks successful.
+
 | Path | Meaning |
 |------|---------|
 | `$.id` | EventBridge **routing** event ID — unique to the delivery event |
 | `$.detail.id` | GuardDuty **finding** ID — use this in ADX |
 | `$.detail.type` | Finding type for analytics |
-
-This is the most common mapping mistake in the module: using `$.id` / `$.type` instead of `$.detail.id` / `$.detail.type`. Ingest may succeed while columns stay empty.
 
 A fuller sample lives in `assets/module_08/sample_eventbridge_envelope.json`.
 

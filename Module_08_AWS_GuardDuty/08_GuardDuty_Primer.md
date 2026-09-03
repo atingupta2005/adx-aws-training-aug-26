@@ -108,6 +108,38 @@ flowchart LR
 
 S3 objects are **not** bare GuardDuty finding JSON. They contain **EventBridge event envelopes**. Finding fields live one level deeper, inside **`detail`**.
 
+### Why an envelope is needed
+
+GuardDuty’s job is to **detect** and describe a threat. EventBridge’s job is to **route** many kinds of events (GuardDuty, EC2, custom apps, …) through one bus to many targets.
+
+Those are different concerns, so EventBridge does **not** replace the finding with a custom Firehose-only format. It **wraps** the finding:
+
+| Layer | Answers | Examples |
+|-------|---------|----------|
+| **Envelope** (outer JSON) | *Who sent this? When? Which account/region? What kind of event is it for routing?* | `source`, `detail-type`, `time`, `account`, `region`, top-level `id` |
+| **`detail`** (inner JSON) | *What did GuardDuty actually find?* | finding `id`, `type`, `severity`, `title`, `resource` |
+
+```mermaid
+%%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
+flowchart TB
+  subgraph why [Why wrap?]
+    A["One event bus serves\nmany AWS services"]
+    B["Rules match outer fields\n(source, detail-type)\nwithout parsing every finding schema"]
+    C["Targets (Firehose, Lambda, …)\nget a standard shell + payload"]
+  end
+  A --> B --> C
+  style why fill:#FFF4E5,stroke:#FF9900,color:#232F3E
+```
+
+**Without an envelope**, every producer would invent its own top-level shape, and every rule/target would need special-case parsing. **With an envelope**, EventBridge can say: “match `source = aws.guardduty`,” and Firehose can deliver a predictable file format, while GuardDuty keeps its full finding model intact under `detail`.
+
+That is also why ADX mappings look “one level deeper”: you are reading the **security payload**, not the **routing metadata**.
+
+| Outer field | Role | Do not confuse with |
+|-------------|------|---------------------|
+| `$.id` | EventBridge delivery / routing ID | GuardDuty finding ID |
+| `$.detail.id` | Actual finding ID | — |
+
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
 flowchart TB

@@ -64,7 +64,9 @@ flowchart TB
   style load fill:#E6F2FB,stroke:#0078D4,color:#003A5D
 ```
 
-**Envelope reminder**
+**Envelope reminder — why the wrap exists**
+
+EventBridge serves **many** services on one bus. The **outer** JSON is standard routing metadata (`source`, `time`, outer `id`). The **inner** `detail` is the GuardDuty finding. That split lets rules match `aws.guardduty` without parsing every finding schema — and it is why ADX reads `$.detail.*`.
 
 | Path | Use for |
 |------|---------|
