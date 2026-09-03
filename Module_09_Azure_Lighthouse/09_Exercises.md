@@ -1,6 +1,6 @@
 # Module 09 — Exercises
 
-After Primer + Concepts + Lab.
+After Primer + Concepts.
 
 ## E1 — Ownership
 
@@ -22,7 +22,7 @@ Which is the “contract card” (who + roles)? Which is “customer accepted on
 
 ## E4 — Scope
 
-Why prefer **Reader** on `rg-lighthouse-demo` over **Owner** on `rg-adx-training-aug26` for a first demo?
+Why prefer **Reader** on one resource group over **Owner** on the whole ADX resource group?
 
 ## E5 — This course
 

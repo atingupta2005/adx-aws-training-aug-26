@@ -62,4 +62,4 @@ flowchart LR
 | ADX cluster + `ADXTrainingDB_u01`…`u06` | Story: how an MSP could **operate** that subscription from another tenant |
 | Entra app for Logstash → ADX | **Not** Lighthouse — data-plane auth |
 
-**Next:** Concepts (diagrams + offer/assignment), then the short Lab (portal walk + trainer demo).
+**Next:** read `09_Azure_Lighthouse_Concepts.md`, then try `09_Exercises.md`.

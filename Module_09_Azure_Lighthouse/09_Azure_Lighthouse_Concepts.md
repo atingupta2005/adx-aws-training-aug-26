@@ -1,9 +1,8 @@
 # Module 09 — Azure Lighthouse concepts
 
-> **Reading order:** Primer → Concepts (this file) → Lab → Exercises.
+> **Reading order:** Primer → Concepts (this file) → Exercises.
 
-Read this slowly. The ideas are simple; the words (tenant, offer, assignment) are new.  
-You do **not** need to deploy anything to understand this chapter. The Lab is a short portal walk and discussion; the trainer may show a live demo if a second tenant is available.
+This module is **concepts only**. You learn how Azure Lighthouse works with diagrams and plain English. There is no hands-on lab and no second tenant in class.
 
 ---
 
@@ -203,7 +202,7 @@ When Contoso hires or fires an engineer, they add/remove the person from the gro
 An offer alone does nothing useful until the **customer accepts** it on a **scope**:
 
 - Whole subscription, or  
-- One resource group (safer for a first demo)
+- One resource group (narrower permission)
 
 ```mermaid
 %%{init: {"theme":"base","sequenceDiagram":{"mirrorActors":false}}}%%
@@ -223,11 +222,11 @@ sequenceDiagram
 | Offer | “Here is who we are and what roles we ask for.” |
 | Assignment | “Yes — you may have those roles on **this** subscription or RG.” |
 
-| Safer for teaching | Riskier |
-|--------------------|---------|
-| One **demo** resource group + **Reader** | Entire subscription + **Owner** |
+| Safer choice | Riskier choice |
+|--------------|----------------|
+| One **resource group** + **Reader** | Entire subscription + **Owner** |
 
-Never practice “Owner on the ADX resource group” in class. That is too much blast radius.
+In real designs, start narrow (one RG + least privilege). Do not grant Owner on a production ADX resource group without a strong reason.
 
 ---
 
@@ -325,7 +324,7 @@ Try answering in plain words (no jargon dump):
 2. Does Lighthouse make the partner a **Global Admin** of the customer Entra ID?  
 3. What is an **offer**? What is an **assignment**?  
 4. Guest user vs Lighthouse — which scales better for 100 customers?  
-5. Why is **Reader** on one demo resource group safer than **Owner** on the ADX resource group?  
+5. Why is **Reader** on one resource group safer than **Owner** on the whole ADX resource group?  
 6. Is the Logstash Entra app the same thing as Lighthouse? Why or why not?
 
 ---
