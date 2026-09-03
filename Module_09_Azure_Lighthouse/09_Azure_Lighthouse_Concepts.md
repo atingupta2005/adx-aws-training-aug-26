@@ -72,7 +72,7 @@ flowchart TB
   subgraph CT["CUSTOMER TENANT — Client"]
     CE["Client owners and billing admins"]
     SUB["Azure subscription<br/>(client still owns it)"]
-    RG["Resource groups and resources<br/>e.g. ADX, VMs, storage"]
+    RG["Resource groups and resources<br/>e.g. VMs, storage, analytics"]
     CE -.->|"owns / pays"| SUB
     SUB --> RG
   end
@@ -158,10 +158,10 @@ flowchart TB
 | **Entra directory role** | Inside one directory | Power over **users/apps** in that directory (not the same as Azure Owner) |
 | **Lighthouse** | Stays in the **partner** tenant | Azure resource roles on a customer scope, by delegation |
 
-**Classroom line for this ADX course**
+**Do not confuse with an Entra app used for data ingest**
 
-- Module 05 **Entra app** for Logstash = “an application may **ingest data** into ADX.”  
-- Module 09 **Lighthouse** = “a partner company may **operate Azure resources** in another company’s subscription.”  
+- An **Entra app** (client ID + secret) = an application may authenticate to a service (for example, to ingest data).  
+- **Lighthouse** = a partner company may **operate Azure resources** in another company’s subscription.  
 
 Same cloud family, **different problems**. Do not mix them.
 
@@ -226,7 +226,7 @@ sequenceDiagram
 |--------------|----------------|
 | One **resource group** + **Reader** | Entire subscription + **Owner** |
 
-In real designs, start narrow (one RG + least privilege). Do not grant Owner on a production ADX resource group without a strong reason.
+In real designs, start narrow (one RG + least privilege). Do not grant Owner on a large production resource group without a strong reason.
 
 ---
 
@@ -273,50 +273,12 @@ flowchart LR
   style E fill:#666,stroke:#333,color:#fff
 ```
 
-**Revoke ≠ delete the customer’s VMs or ADX.**  
+**Revoke ≠ delete the customer’s VMs or databases.**  
 Revoke only removes the cross-tenant permission bridge. The customer’s resources remain; the partner simply cannot manage them that way anymore.
 
 ---
 
-## 7. How this maps to *your* ADX training
-
-You already work in **one** training tenant (`atttraining`) and one Pay-As-You-Go subscription with ADX and per-student databases.
-
-```mermaid
-%%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%
-flowchart TB
-  subgraph TODAY["What you already use in class"]
-    T["Training Entra tenant"]
-    PAY["Pay-As-You-Go subscription"]
-    ADX["ADX cluster adxtrainaug26"]
-    DB["ADXTrainingDB_u01 … u06"]
-    APP["Entra app for Logstash ingest"]
-    T --> PAY --> ADX --> DB
-    APP -->|"app auth to ingest"| ADX
-  end
-  subgraph STORY["Lighthouse story on top"]
-    MSP["A partner tenant<br/>(another company)"]
-    LH["Delegated Reader<br/>on a chosen scope"]
-    MSP --> LH
-    LH -.->|"operate / monitor<br/>without joining atttraining"| PAY
-  end
-  style TODAY fill:#1a3d1a,stroke:#107C10,color:#fff
-  style STORY fill:#0b3d5c,stroke:#0078D4,color:#fff
-  style APP fill:#ca5010,stroke:#8a3700,color:#fff
-  style LH fill:#50e6ff,stroke:#0078D4,color:#000
-```
-
-| What you did in Modules 01–08 | Is that Lighthouse? |
-|-------------------------------|---------------------|
-| Ingest logs from S3 / Logstash / GuardDuty into ADX | **No** — that is **data** moving into ADX |
-| Entra app + secret for the kusto plugin | **No** — that is **app authentication** for ingest |
-| A partner company operating many customers’ Azure (including ADX RGs) from its own tenant | **Yes** — that is the Lighthouse **ops** story |
-
-So: this module does not change how you ingest. It answers a governance question: *how would a partner manage Azure across customers cleanly?*
-
----
-
-## 8. Checkpoint — can you explain it simply?
+## 7. Checkpoint — can you explain it simply?
 
 Try answering in plain words (no jargon dump):
 
@@ -324,12 +286,12 @@ Try answering in plain words (no jargon dump):
 2. Does Lighthouse make the partner a **Global Admin** of the customer Entra ID?  
 3. What is an **offer**? What is an **assignment**?  
 4. Guest user vs Lighthouse — which scales better for 100 customers?  
-5. Why is **Reader** on one resource group safer than **Owner** on the whole ADX resource group?  
-6. Is the Logstash Entra app the same thing as Lighthouse? Why or why not?
+5. Why is **Reader** on one resource group safer than **Owner** on a large production resource group?  
+6. Is an Entra app used for data ingest the same thing as Lighthouse? Why or why not?
 
 ---
 
-## 9. One-slide summary
+## 8. One-slide summary
 
 ```mermaid
 %%{init: {"theme":"base","flowchart":{"htmlLabels":true,"padding":12}}}%%

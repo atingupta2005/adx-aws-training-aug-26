@@ -22,8 +22,8 @@ Which is the “contract card” (who + roles)? Which is “customer accepted on
 
 ## E4 — Scope
 
-Why prefer **Reader** on one resource group over **Owner** on the whole ADX resource group?
+Why prefer **Reader** on one resource group over **Owner** on a large production resource group?
 
-## E5 — This course
+## E5 — Not the same as an ingest app
 
-Name one thing in Modules 01–08 that is **not** solved by Lighthouse, and one scenario where Lighthouse *would* apply to an ADX customer estate.
+In one or two sentences: how is Lighthouse different from an Entra app that an application uses to authenticate for data ingest?

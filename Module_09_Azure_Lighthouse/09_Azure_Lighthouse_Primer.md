@@ -39,7 +39,7 @@ flowchart LR
 |---------------|------------|
 | Entra **B2B guest** | Guest lands *inside* the customer tenant. Lighthouse keeps the partner in *their* tenant. |
 | Entra **directory roles** (Global Admin, …) | Identity-directory power. Lighthouse is **Azure Resource Manager** RBAC only. |
-| Logstash **Entra app** (Module 05) | App auth for **ingest into ADX**. Lighthouse is **ops access** to Azure resources. Different problem. |
+| Logstash **Entra app** | App auth for **data ingest**. Lighthouse is **ops access** to Azure resources. Different problem. |
 
 ---
 
@@ -52,14 +52,5 @@ flowchart LR
 | Offer / registration **definition** | Packaged “who + which Azure roles” |
 | Registration **assignment** | Customer acceptance on a subscription or RG |
 | **My customers** | Portal blade in the managing tenant to open delegated subscriptions |
-
----
-
-## Fit with this ADX course
-
-| This course | Lighthouse |
-|-------------|------------|
-| ADX cluster + `ADXTrainingDB_u01`…`u06` | Story: how an MSP could **operate** that subscription from another tenant |
-| Entra app for Logstash → ADX | **Not** Lighthouse — data-plane auth |
 
 **Next:** read `09_Azure_Lighthouse_Concepts.md`, then try `09_Exercises.md`.
