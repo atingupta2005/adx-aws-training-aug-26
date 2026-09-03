@@ -18,8 +18,6 @@
 # --- Later modules / trainer-only — local copy only; do not commit ---
 # Each blocked folder may have its own .gitignore (* + !.gitignore).
 Logstash_In_Depth/
-Module_08_AWS_GuardDuty/
-assets/module_08/
 Appendix_Azure_Lighthouse/
 assets/appendix_lighthouse/
 
