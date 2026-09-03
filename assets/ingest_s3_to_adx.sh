@@ -105,12 +105,12 @@ apply_preset() {
       LAB_SUBDIR="m03"
       ;;
     m08)
-      BUCKET="adx-classroom-guardduty-export"
-      PREFIX="guardduty/"
+      BUCKET="${BUCKET:-adx-classroom-guardduty-export}"
+      PREFIX="${PREFIX:-guardduty/}"
       SUFFIX=""
-      TABLE="GuardDutyFindings"
-      MAPPING="GD_Mapping"
-      FORMAT="multijson"
+      TABLE="${TABLE:-GuardDutyFindings}"
+      MAPPING="${MAPPING:-GD_Mapping}"
+      FORMAT="${FORMAT:-multijson}"
       READER_ENV="${READER_ENV:-${HOME}/adx-lab-m08/reader.env}"
       LAB_SUBDIR="m08"
       ;;
